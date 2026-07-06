@@ -1,5 +1,5 @@
 # College-Projects
-A collection of course projects completed as part of my B.Tech in Computer Science and Engineering (AI & ML) at SRM Institute of Science and Technology.
+A collection of course projects completed in 6th semester as part of my B.Tech in Computer Science and Engineering (AI & ML) at SRM Institute of Science and Technology.
 - [Accelerated Data Science](#accelerated-data-science--21cse313p)
 - [Intelligent Systems for IoT Applications](#intelligent-systems-for-iot-applications--21cse402p)
 
