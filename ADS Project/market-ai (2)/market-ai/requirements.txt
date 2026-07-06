@@ -1,0 +1,12 @@
+# GPU-Accelerated Financial Market Intelligence Engine
+# Python 3.10 + RAPIDS 24.02 + CUDA
+
+# Core
+numpy>=1.24
+pandas>=1.5
+scipy>=1.10
+xgboost>=2.0
+scikit-learn>=1.3
+plotly>=5.18
+dash>=2.14
+networkx>=3.1

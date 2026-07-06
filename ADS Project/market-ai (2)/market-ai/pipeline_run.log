@@ -1,0 +1,234 @@
+[2026-04-14 17:03:13] INFO     __main__             ▶ Starting run_pipeline...
+======================================================================
+  GPU-ACCELERATED FINANCIAL MARKET INTELLIGENCE ENGINE
+  JPX Tokyo Stock Exchange — Regime & Risk Analysis
+======================================================================
+[2026-04-14 17:03:13] WARNING  gpu_utils            RAPIDS/CuPy not available: No module named 'cupy'. Using CPU fallback.
+[2026-04-14 17:03:13] INFO     ingestion            ▶ Starting run_ingestion...
+[2026-04-14 17:03:13] INFO     ingestion            ▶ Starting load_stock_prices...
+[2026-04-14 17:03:13] INFO     ingestion            [CPU (pandas)] Loading stock prices from: /home/arnav/market-ai/data/stock_prices.csv
+[2026-04-14 17:03:17] INFO     ingestion            Loaded 2,332,531 rows
+[2026-04-14 17:03:17] INFO     ingestion            ✓ Completed load_stock_prices in 3.54s
+[2026-04-14 17:03:17] INFO     ingestion            ▶ Starting load_stock_list...
+[2026-04-14 17:03:17] INFO     ingestion            [CPU (pandas)] Loading stock list from: /home/arnav/market-ai/data/stock_list.csv
+[2026-04-14 17:03:17] INFO     ingestion            Loaded 4,417 stock entries
+[2026-04-14 17:03:17] INFO     ingestion            ✓ Completed load_stock_list in 0.01s
+[2026-04-14 17:03:17] INFO     ingestion            [StockPrices] Schema validated — 12 columns present
+[2026-04-14 17:03:17] INFO     ingestion            ▶ Starting prepare_prices...
+[2026-04-14 17:03:18] INFO     ingestion            Data prepared: 2,000 stocks | 2017-01-04 → 2021-12-03
+[2026-04-14 17:03:18] INFO     ingestion            ✓ Completed prepare_prices in 0.92s
+[2026-04-14 17:03:18] INFO     ingestion            Merged sector info (5 columns)
+[2026-04-14 17:03:18] INFO     utils                ─── Ingested Stock Prices Summary ───
+[2026-04-14 17:03:18] INFO     utils                  Shape: 2,332,531 rows × 17 cols
+[2026-04-14 17:03:18] INFO     utils                  Null %: 5.91%
+[2026-04-14 17:03:20] INFO     utils                  Memory: 1010.4 MB
+[2026-04-14 17:03:20] INFO     ingestion            ✓ Completed run_ingestion in 6.62s
+[2026-04-14 17:03:20] INFO     utils                Saved intermediate: /home/arnav/market-ai/outputs/intermediate/stock_list.pkl
+[2026-04-14 17:03:20] INFO     cleaning             ▶ Starting run_cleaning...
+[2026-04-14 17:03:20] INFO     cleaning             ═══ Starting Data Cleaning ═══
+[2026-04-14 17:03:20] INFO     cleaning             ▶ Starting apply_adjustment_factor...
+[2026-04-14 17:03:20] INFO     cleaning             Applied AdjustmentFactor to OHLC prices
+[2026-04-14 17:03:20] INFO     cleaning             ✓ Completed apply_adjustment_factor in 0.03s
+[2026-04-14 17:03:20] INFO     cleaning             ▶ Starting handle_missing_values...
+[2026-04-14 17:03:20] INFO     cleaning             Missing values: 30,432 → 0 (dropped 264 rows)
+[2026-04-14 17:03:20] INFO     cleaning             ✓ Completed handle_missing_values in 0.54s
+[2026-04-14 17:03:20] INFO     cleaning             ▶ Starting filter_short_histories...
+[2026-04-14 17:03:21] INFO     cleaning             Stock filter (>=252 days): 2,000 → 1,991 stocks
+[2026-04-14 17:03:21] INFO     cleaning             ✓ Completed filter_short_histories in 0.45s
+[2026-04-14 17:03:21] INFO     cleaning             ▶ Starting remove_outlier_returns...
+[2026-04-14 17:03:21] INFO     cleaning             Removed 311 outlier return rows (>10.0σ)
+[2026-04-14 17:03:21] INFO     cleaning             ✓ Completed remove_outlier_returns in 0.45s
+[2026-04-14 17:03:21] INFO     cleaning             ▶ Starting validate_price_consistency...
+[2026-04-14 17:03:21] INFO     cleaning             ✓ Completed validate_price_consistency in 0.01s
+[2026-04-14 17:03:21] INFO     cleaning             ▶ Starting flag_supervision_stocks...
+[2026-04-14 17:03:21] INFO     cleaning             Stocks under supervision: 15
+[2026-04-14 17:03:21] INFO     cleaning             ✓ Completed flag_supervision_stocks in 0.00s
+[2026-04-14 17:03:21] INFO     utils                ─── Cleaned Stock Prices Summary ───
+[2026-04-14 17:03:21] INFO     utils                  Shape: 2,329,845 rows × 17 cols
+[2026-04-14 17:03:22] INFO     utils                  Null %: 5.83%
+[2026-04-14 17:03:23] INFO     utils                  Memory: 1011.0 MB
+[2026-04-14 17:03:23] INFO     cleaning             ✓ Completed run_cleaning in 3.53s
+[2026-04-14 17:03:23] INFO     features             ▶ Starting run_feature_engineering...
+[2026-04-14 17:03:23] INFO     features             ═══ Starting Feature Engineering ═══
+[2026-04-14 17:03:23] INFO     features             Converting to pandas BEFORE feature engineering (safe zone)...
+[2026-04-14 17:03:23] INFO     features             ▶ Starting compute_per_asset_features_gpu...
+[2026-04-14 17:03:23] INFO     features             Computing per-asset features (CPU mode)...
+[2026-04-14 17:03:29] INFO     features             Computing RSI, drawdown, and liquidity features...
+[2026-04-14 17:03:31] INFO     features             Feature engineering completed successfully.
+[2026-04-14 17:03:31] INFO     features             ✓ Completed compute_per_asset_features_gpu in 7.21s
+[2026-04-14 17:03:31] INFO     features             ▶ Starting compute_cross_sectional_features...
+[2026-04-14 17:03:31] INFO     features             Computing cross-sectional features...
+[2026-04-14 17:03:32] INFO     features             Cross-sectional features computed
+[2026-04-14 17:03:32] INFO     features             ✓ Completed compute_cross_sectional_features in 1.62s
+[2026-04-14 17:03:32] INFO     features             ▶ Starting compute_targets...
+[2026-04-14 17:03:32] INFO     features             Computing target variables...
+[2026-04-14 17:03:34] INFO     features             Regime distribution:
+regime_label
+0    770398
+1    769512
+2    770025
+[2026-04-14 17:03:35] INFO     features             Volatility spike prevalence: 6.6%
+[2026-04-14 17:03:35] INFO     features             ✓ Completed compute_targets in 2.43s
+[2026-04-14 17:03:36] INFO     utils                ─── Feature-Engineered Dataset Summary ───
+[2026-04-14 17:03:36] INFO     utils                  Shape: 2,309,935 rows × 46 cols
+[2026-04-14 17:03:36] INFO     utils                  Null %: 2.59%
+[2026-04-14 17:03:38] INFO     utils                  Memory: 1515.6 MB
+[2026-04-14 17:03:38] INFO     features             Total feature columns: 29
+[2026-04-14 17:03:38] INFO     features             ✓ Completed run_feature_engineering in 14.17s
+[2026-04-14 17:03:38] INFO     signals              ▶ Starting run_signal_processing...
+[2026-04-14 17:03:38] INFO     signals              ▶ Starting compute_spectral_features...
+[2026-04-14 17:03:38] INFO     signals              ═══ Starting Signal Processing (FFT) ═══
+[2026-04-14 17:03:38] INFO     signals              FFT backend: CPU (NumPy/SciPy)
+[2026-04-14 17:03:38] INFO     signals              Processing FFT for 1991 stocks...
+[2026-04-14 17:03:44] INFO     signals                FFT processed: 500/1991 stocks
+[2026-04-14 17:03:49] INFO     signals                FFT processed: 1000/1991 stocks
+[2026-04-14 17:03:54] INFO     signals                FFT processed: 1500/1991 stocks
+[2026-04-14 17:03:59] INFO     signals              Spectral features computed: 98,581 observations
+[2026-04-14 17:03:59] INFO     signals              ✓ Completed compute_spectral_features in 21.59s
+[2026-04-14 17:03:59] INFO     signals              ▶ Starting detect_regime_shifts...
+[2026-04-14 17:04:00] INFO     signals              Detected 0 regime shift signals
+[2026-04-14 17:04:00] INFO     signals              ✓ Completed detect_regime_shifts in 0.52s
+[2026-04-14 17:04:00] INFO     signals              ▶ Starting detect_volatility_bursts...
+[2026-04-14 17:04:00] INFO     signals              Detected 0 volatility burst signals
+[2026-04-14 17:04:00] INFO     signals              ✓ Completed detect_volatility_bursts in 0.52s
+[2026-04-14 17:04:01] INFO     signals              Merged 6 spectral features into main dataset
+[2026-04-14 17:04:01] INFO     signals              ✓ Completed run_signal_processing in 22.88s
+[2026-04-14 17:04:01] INFO     utils                Saved intermediate: /home/arnav/market-ai/outputs/intermediate/spectral_features.pkl
+[2026-04-14 17:04:01] INFO     graph                ▶ Starting run_graph_modeling...
+[2026-04-14 17:04:01] INFO     graph                ═══ Starting Correlation Graph Modeling ═══
+[2026-04-14 17:04:01] INFO     graph                ▶ Starting select_liquid_stocks...
+[2026-04-14 17:04:01] INFO     graph                Selected top 200 most liquid stocks for graph analysis
+[2026-04-14 17:04:01] INFO     graph                ✓ Completed select_liquid_stocks in 0.04s
+[2026-04-14 17:04:01] INFO     graph                ▶ Starting compute_correlation_matrix...
+[2026-04-14 17:04:01] INFO     graph                Correlation matrix: 200×200 stocks
+[2026-04-14 17:04:01] INFO     graph                ✓ Completed compute_correlation_matrix in 0.15s
+[2026-04-14 17:04:01] INFO     graph                ▶ Starting build_graph_from_correlation...
+[2026-04-14 17:04:01] INFO     graph                Graph: 200 nodes, 2334 edges (threshold=0.5)
+[2026-04-14 17:04:01] INFO     graph                ✓ Completed build_graph_from_correlation in 0.25s
+[2026-04-14 17:04:01] INFO     graph                ▶ Starting run_community_detection...
+[2026-04-14 17:04:01] INFO     graph                NetworkX communities: 9
+[2026-04-14 17:04:01] INFO     graph                ✓ Completed run_community_detection in 0.22s
+[2026-04-14 17:04:01] INFO     graph                ▶ Starting run_centrality_analysis...
+[2026-04-14 17:04:01] INFO     graph                Centrality computed for 200 stocks
+[2026-04-14 17:04:01] INFO     graph                ✓ Completed run_centrality_analysis in 0.10s
+[2026-04-14 17:04:01] INFO     graph                ▶ Starting compute_graph_density...
+[2026-04-14 17:04:01] INFO     graph                Graph density: 0.1173
+[2026-04-14 17:04:01] INFO     graph                ✓ Completed compute_graph_density in 0.00s
+[2026-04-14 17:04:01] INFO     graph                Top systemic nodes:
+     SecuritiesCode  pagerank  degree_centrality  community
+122            7186  0.015000           0.444444        0.0
+117            7011  0.013983           0.444444        1.0
+164            8593  0.013862           0.438889        1.0
+9              1928  0.013694           0.438889        2.0
+45             4202  0.013585           0.416667        0.0
+143            8053  0.013434           0.422222        0.0
+90             6473  0.013369           0.438889        1.0
+153            8331  0.013149           0.394444        0.0
+79             5802  0.012961           0.422222        1.0
+5              1808  0.012596           0.405556        1.0
+[2026-04-14 17:04:01] INFO     graph                ✓ Completed run_graph_modeling in 0.76s
+[2026-04-14 17:04:01] INFO     utils                Saved intermediate: /home/arnav/market-ai/outputs/intermediate/graph_results_meta.pkl
+[2026-04-14 17:04:02] INFO     ml                   ▶ Starting run_ml...
+[2026-04-14 17:04:02] INFO     ml                   ═══ Starting Machine Learning Layer ═══
+[2026-04-14 17:04:02] INFO     ml                   ▶ Starting train_regime_classifier...
+[2026-04-14 17:04:02] INFO     ml                   ─── Training Regime Classifier (3-class) ───
+[2026-04-14 17:04:02] INFO     ml                   Available feature columns: 27/27
+[2026-04-14 17:04:02] INFO     ml                   ▶ Starting time_split...
+[2026-04-14 17:04:05] INFO     ml                   Split for 'regime_label': Train=1,834,104 (2017-01-19 to 2020-12-14), Test=465,876 (2020-12-21 to 2021-12-03), Purge gap=5 days
+[2026-04-14 17:04:05] INFO     ml                   ✓ Completed time_split in 2.88s
+[2026-04-14 17:04:06] INFO     ml                   Training data: (1586317, 27), Test data: (464873, 27), Classes: 3
+[2026-04-14 17:08:23] INFO     ml                   [LogisticRegression] Accuracy=0.9914, F1(macro)=0.9914, ROC-AUC=0.9999
+[2026-04-14 17:10:15] INFO     ml                   [RandomForest] Accuracy=1.0000, F1(macro)=1.0000, ROC-AUC=1.0
+[2026-04-14 17:10:16] WARNING  ml                   XGBoost failed: Invalid Input: 'gpu_hist', valid values are: {'approx', 'auto', 'exact', 'hist'}
+[2026-04-14 17:10:16] INFO     ml                   ✓ Completed train_regime_classifier in 373.79s
+[2026-04-14 17:10:16] INFO     ml                   ▶ Starting train_vol_spike_predictor...
+[2026-04-14 17:10:16] INFO     ml                   ─── Training Volatility Spike Predictor (binary) ───
+[2026-04-14 17:10:16] INFO     ml                   Available feature columns: 27/27
+[2026-04-14 17:10:16] INFO     ml                   ▶ Starting time_split...
+[2026-04-14 17:10:19] INFO     ml                   Split for 'vol_spike': Train=1,834,104 (2017-01-19 to 2020-12-14), Test=465,876 (2020-12-21 to 2021-12-03), Purge gap=5 days
+[2026-04-14 17:10:19] INFO     ml                   ✓ Completed time_split in 2.91s
+[2026-04-14 17:10:20] INFO     ml                   Vol spike prevalence in train: 0.070
+[2026-04-14 17:12:01] INFO     ml                   [LogisticRegression] Accuracy=0.9434, F1(macro)=0.4860, ROC-AUC=0.6889
+[2026-04-14 17:15:02] INFO     ml                   [RandomForest] Accuracy=0.9434, F1(macro)=0.4854, ROC-AUC=0.739
+[2026-04-14 17:15:03] WARNING  ml                   XGBoost failed: Invalid Input: 'gpu_hist', valid values are: {'approx', 'auto', 'exact', 'hist'}
+[2026-04-14 17:15:03] INFO     ml                   ✓ Completed train_vol_spike_predictor in 286.56s
+[2026-04-14 17:15:03] INFO     ml                   [regime] Best model: random_forest (F1=1.0000)
+[2026-04-14 17:15:03] INFO     ml                   [vol_spike] Best model: logistic_regression (F1=0.4860)
+[2026-04-14 17:15:03] INFO     ml                   ✓ Completed run_ml in 660.35s
+[2026-04-14 17:15:03] INFO     risk                 ▶ Starting run_risk_engine...
+[2026-04-14 17:15:03] INFO     risk                 ═══ Starting Risk Intelligence Engine ═══
+[2026-04-14 17:15:03] INFO     risk                 ▶ Starting compute_risk_scores...
+[2026-04-14 17:15:03] INFO     risk                 ═══ Computing Risk Scores ═══
+[2026-04-14 17:15:06] INFO     risk                 Risk scores: mean=29.1, max=58.3, min=0.8
+[2026-04-14 17:15:06] INFO     risk                 ✓ Completed compute_risk_scores in 2.86s
+[2026-04-14 17:15:06] INFO     risk                 ▶ Starting compute_market_sentiment...
+[2026-04-14 17:15:06] INFO     risk                 ═══ Computing Market Sentiment Proxy ═══
+[2026-04-14 17:15:06] INFO     risk                 Market Sentiment: Fear (38.4/100)
+[2026-04-14 17:15:06] INFO     risk                 ✓ Completed compute_market_sentiment in 0.01s
+[2026-04-14 17:15:06] INFO     risk                 ▶ Starting compute_market_regime...
+[2026-04-14 17:15:06] INFO     risk                 Market regime: Low Volatility (vol=0.0190)
+[2026-04-14 17:15:06] INFO     risk                 ✓ Completed compute_market_regime in 0.01s
+[2026-04-14 17:15:06] INFO     risk                 ▶ Starting generate_volatility_alerts...
+[2026-04-14 17:15:06] INFO     risk                 Volatility alerts: 0 stocks (threshold=0.6)
+[2026-04-14 17:15:06] INFO     risk                 ✓ Completed generate_volatility_alerts in 0.00s
+[2026-04-14 17:15:06] INFO     risk                 ▶ Starting compute_systemic_risk...
+[2026-04-14 17:15:06] INFO     risk                 Systemic risk score: 39.4/100
+[2026-04-14 17:15:06] INFO     risk                 ✓ Completed compute_systemic_risk in 0.00s
+[2026-04-14 17:15:06] INFO     risk                 ▶ Starting compute_sector_risk...
+[2026-04-14 17:15:06] INFO     risk                 Sector risk computed for 17 sectors
+[2026-04-14 17:15:06] INFO     risk                 ✓ Completed compute_sector_risk in 0.01s
+[2026-04-14 17:15:06] INFO     risk                 ═══ Risk Intelligence Summary ═══
+[2026-04-14 17:15:06] INFO     risk                   Market Sentiment: Fear (38.4)
+[2026-04-14 17:15:06] INFO     risk                   Market Regime: Low Volatility
+[2026-04-14 17:15:06] INFO     risk                   Systemic Risk: 39.4/100
+[2026-04-14 17:15:06] INFO     risk                   Stocks with alerts: 0
+[2026-04-14 17:15:06] INFO     risk                   Highest risk stock score: 58.3
+[2026-04-14 17:15:06] INFO     risk                 ✓ Completed run_risk_engine in 2.89s
+[2026-04-14 17:15:06] INFO     benchmark            ▶ Starting run_benchmarks...
+[2026-04-14 17:15:06] INFO     benchmark            ═══ Starting CPU vs GPU Benchmarking ═══
+[2026-04-14 17:15:06] INFO     benchmark            ▶ Starting benchmark_csv_loading...
+[2026-04-14 17:15:09] INFO     benchmark            CSV Load CPU: 2.930s, 411.6MB
+[2026-04-14 17:15:09] INFO     benchmark            ✓ Completed benchmark_csv_loading in 3.07s
+[2026-04-14 17:15:09] INFO     benchmark            ▶ Starting benchmark_fft...
+[2026-04-14 17:15:09] INFO     benchmark            FFT CPU (10000 samples): 0.29ms
+[2026-04-14 17:15:09] INFO     benchmark            ✓ Completed benchmark_fft in 0.00s
+[2026-04-14 17:15:09] INFO     benchmark            ▶ Starting benchmark_correlation...
+[2026-04-14 17:15:09] INFO     benchmark            Correlation CPU (200×63): 0.87ms
+[2026-04-14 17:15:09] INFO     benchmark            ✓ Completed benchmark_correlation in 0.00s
+[2026-04-14 17:15:09] INFO     benchmark            ▶ Starting benchmark_xgboost...
+[2026-04-14 17:15:10] INFO     benchmark            XGBoost CPU (50000 samples): 0.967s
+[2026-04-14 17:15:10] INFO     benchmark            ✓ Completed benchmark_xgboost in 1.00s
+[2026-04-14 17:15:10] INFO     benchmark            ▶ Starting benchmark_graph_community...
+[2026-04-14 17:15:10] INFO     benchmark            Graph Community CPU (200 nodes): 0.534s
+[2026-04-14 17:15:10] INFO     benchmark            ✓ Completed benchmark_graph_community in 0.53s
+[2026-04-14 17:15:10] INFO     benchmark            ▶ Starting benchmark_feature_engineering...
+[2026-04-14 17:15:10] INFO     benchmark            Groupby Agg CPU: 0.009s
+[2026-04-14 17:15:10] INFO     benchmark            ✓ Completed benchmark_feature_engineering in 0.01s
+[2026-04-14 17:15:10] INFO     benchmark            
+═══ Benchmark Summary ═══
+[2026-04-14 17:15:10] INFO     benchmark              csv_loading                CPU:       2.93s  GPU:        N/As  Speedup:    N/A×
+  fft                        CPU:    0.00029s  GPU:        N/As  Speedup:    N/A×
+  correlation                CPU:    0.00087s  GPU:        N/As  Speedup:    N/A×
+  xgboost                    CPU:      0.967s  GPU:        N/As  Speedup:    N/A×
+  graph_community            CPU:      0.534s  GPU:        N/As  Speedup:    N/A×
+  feature_engineering        CPU:      0.009s  GPU:        N/As  Speedup:    N/A×
+[2026-04-14 17:15:10] INFO     benchmark            ✓ Completed run_benchmarks in 4.62s
+[2026-04-14 17:15:14] INFO     utils                Saved intermediate: /home/arnav/market-ai/outputs/intermediate/pipeline_results.pkl
+
+======================================================================
+  PIPELINE COMPLETE — Total time: 721.0s
+======================================================================
+
+📊 KEY RESULTS:
+  • Data: 1,991 stocks, 2,309,935 observations
+  • Market Regime: Low Volatility
+  • Systemic Risk: 39.4/100
+  • Volatility Alerts: 0 stocks
+  • Graph Communities: 9
+  • regime/random_forest: F1=1.0000, ROC-AUC=1.0
+  • regime/logistic_regression: F1=0.9914, ROC-AUC=0.9999
+  • vol_spike/random_forest: F1=0.4854, ROC-AUC=0.739
+  • vol_spike/logistic_regression: F1=0.4860, ROC-AUC=0.6889
+
+⚡ GPU SPEEDUPS:
+[2026-04-14 17:15:14] INFO     __main__             ✓ Completed run_pipeline in 720.96s

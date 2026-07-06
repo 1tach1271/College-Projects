@@ -1,0 +1,24 @@
+__pycache__/
+*.pyc
+*.pyo
+*.log
+cufile.log
+
+# Data (mount as volume instead)
+data/
+
+# Outputs (mount as volume to persist)
+outputs/
+models/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Misc
+*.html
+*.sh
+src/
