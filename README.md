@@ -2,7 +2,7 @@
 A collection of course projects completed in 6th semester as part of my B.Tech in Computer Science and Engineering (AI & ML) at SRM Institute of Science and Technology.
 - [Accelerated Data Science](#accelerated-data-science--21cse313p)
 - [Intelligent Systems for IoT Applications](#intelligent-systems-for-iot-applications--21cse402p)
-
+- [Software Engineering and Project Management](#software-engineering-and-project-management---21csc303j)
 ## Accelerated Data Science – 21CSE313P
 ### 1. Financial Market Analysis Engine
 
@@ -10,12 +10,12 @@ A GPU-accelerated financial analytics system designed to process large-scale mar
 
 **Key Features**
 
-* GPU-accelerated data processing with RAPIDS (cuDF)
-* Financial feature engineering and volatility analysis
-* FFT-based market signal analysis using cuSignal
-* Correlation graph construction with cuGraph
-* Market regime classification using cuML
-* CPU vs GPU performance benchmarking
+- GPU-accelerated data processing with RAPIDS (cuDF)
+- Financial feature engineering and volatility analysis
+- FFT-based market signal analysis using cuSignal
+- Correlation graph construction with cuGraph
+- Market regime classification using cuML
+- CPU vs GPU performance benchmarking
 
 **Tech Stack:** Python, CUDA, RAPIDS, cuDF, cuML, cuSignal, cuGraph, Dask, XGBoost
 
@@ -27,11 +27,25 @@ A Graph Neural Network (GNN)-based system for detecting anomalies in wearable se
 
 **Key Features**
 
-* Graph-based representation of wearable sensor data
-* Real-time anomaly detection using GNNs
-* Learning inter-sensor relationships
-* Edge deployment for fast and efficient inference
-* Reduced latency and cloud dependency
+- Graph-based representation of wearable sensor data
+- Real-time anomaly detection using GNNs
+- Learning inter-sensor relationships
+- Edge deployment for fast and efficient inference
+- Reduced latency and cloud dependency
 
 **Tech Stack:** Python, PyTorch, PyTorch Geometric, NumPy, Pandas
 
+## Software Engineering and Project Management - 21CSC303J
+### 3. Saveur Restaurant OS
+
+A restaurant management system that streamlines customer ordering and restaurant operations through role-based workflows, inventory management, order processing, and analytics. The application supports GitHub Pages deployment with optional Supabase PostgreSQL integration for persistent storage.
+
+**Key Features**
+
+- Role-based customer and owner authentication
+- Menu, cart, order tracking, and order history
+- Inventory management with automatic stock updates
+- Revenue analytics and order management dashboard
+- LocalStorage and optional Supabase database support
+
+**Tech Stack:** HTML, CSS, JavaScript, Supabase PostgreSQL, GitHub Pages

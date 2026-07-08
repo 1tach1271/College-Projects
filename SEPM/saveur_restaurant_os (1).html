@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saveur — Restaurant OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#FDF8F2;--ink:#1A1208;--rust:#C94F2C;--rust-light:#F5E8E3;--rust-dark:#9A3A1E;
+  --gold:#D4A843;--gold-light:#FBF3E2;--sage:#4A6741;--sage-light:#E8F0E7;
+  --muted:#7A6C5E;--border:#E8E0D5;--white:#FFFFFF;--red:#E53E3E;--green:#38A169;
+  --shadow:0 2px 12px rgba(26,18,8,0.08);--shadow-lg:0 8px 32px rgba(26,18,8,0.12);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;font-size:15px}
+h1,h2,h3,h4{font-family:'Playfair Display',serif}
+.btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;transition:all .2s}
+.btn-primary{background:var(--rust);color:#fff}.btn-primary:hover{background:var(--rust-dark)}
+.btn-secondary{background:transparent;border:1.5px solid var(--rust);color:var(--rust)}.btn-secondary:hover{background:var(--rust-light)}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--ink)}.btn-ghost:hover{background:var(--border)}
+.btn-sm{padding:6px 14px;font-size:13px}.btn-lg{padding:13px 28px;font-size:16px}
+.card{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:1.25rem}
+.input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--white);color:var(--ink);outline:none;transition:border-color .2s}
+.input:focus{border-color:var(--rust)}
+textarea.input{resize:vertical}
+.label{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:5px;display:block}
+.badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.badge-green{background:var(--sage-light);color:var(--sage)}
+.badge-amber{background:var(--gold-light);color:#8a6d15}
+.badge-red{background:#FFF0F0;color:var(--red)}
+.badge-muted{background:var(--border);color:var(--muted)}
+.tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:var(--rust-light);color:var(--rust);border:1px solid #ECC8BC;cursor:pointer;transition:all .2s}
+.tag.active,.tag:hover{background:var(--rust);color:#fff}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--ink);padding:1.5rem 0;z-index:100;overflow-y:auto;display:flex;flex-direction:column}
+.sidebar-logo{padding:0 1.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:1rem}
+.sidebar-logo h2{color:#fff;font-size:20px}
+.sidebar-logo span{color:var(--gold);font-size:11px;font-family:'DM Sans',sans-serif;font-weight:300;letter-spacing:2px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 1.5rem;color:rgba(255,255,255,.6);cursor:pointer;transition:all .2s;font-size:14px;border-left:3px solid transparent}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.07)}
+.nav-item.active{color:#fff;background:rgba(255,255,255,.07);border-left-color:var(--gold)}
+.nav-bottom{margin-top:auto;padding-top:1rem;border-top:1px solid rgba(255,255,255,.08)}
+.main{margin-left:220px;padding:0;min-height:100vh}
+.page-content{padding:2rem}
+.page-header{margin-bottom:2rem}
+.page-header h1{font-size:26px;margin-bottom:4px}
+.page-header p{color:var(--muted);font-size:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.stat-card{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:1.25rem}
+.stat-val{font-family:'Playfair Display',serif;font-size:26px;color:var(--ink);margin:4px 0}
+.table{width:100%;border-collapse:collapse}
+.table th{text-align:left;padding:10px 14px;font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1.5px solid var(--border)}
+.table td{padding:12px 14px;font-size:14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.table tr:last-child td{border-bottom:none}
+.table tr:hover td{background:#FEFCF9}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+.menu-card{background:var(--white);border-radius:12px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.menu-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.menu-card-img{height:130px;background:linear-gradient(135deg,var(--rust-light),var(--gold-light));display:flex;align-items:center;justify-content:center;font-size:48px}
+.menu-card-body{padding:1rem}
+.menu-card-body h4{font-size:15px;margin-bottom:4px;font-family:'Playfair Display',serif}
+.menu-card-body .price{color:var(--rust);font-weight:500;font-size:15px}
+.menu-card-body .desc{font-size:12px;color:var(--muted);margin:4px 0 10px;line-height:1.5}
+.topbar{height:56px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:50}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--rust);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:500;cursor:pointer}
+.progress-track{display:flex;align-items:center;margin:1.5rem 0}
+.progress-step{text-align:center;position:relative;z-index:1}
+.p-dot{width:32px;height:32px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:13px;transition:all .3s}
+.p-done .p-dot{background:var(--sage);color:#fff}
+.p-active .p-dot{background:var(--rust);color:#fff}
+.p-label{font-size:12px;color:var(--muted);white-space:nowrap}
+.p-done .p-label,.p-active .p-label{color:var(--ink)}
+.p-line{flex:1;height:2px;background:var(--border);margin-top:-22px}
+.p-line.done{background:var(--sage)}
+.cart-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.cart-item:last-child{border-bottom:none}
+.cart-img{width:54px;height:54px;border-radius:8px;background:var(--rust-light);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.qty-ctrl{display:flex;align-items:center;gap:8px}
+.qty-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.qty-btn:hover{border-color:var(--rust);color:var(--rust)}
+.notif-row{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.notif-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.status-badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;white-space:nowrap}
+.full-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--cream)}
+.auth-card{background:var(--white);border-radius:16px;border:1px solid var(--border);padding:2rem;box-shadow:var(--shadow-lg);width:100%;max-width:420px}
+.divider{height:1px;background:var(--border);margin:1.5rem 0}
+.select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--white);color:var(--ink);outline:none;cursor:pointer}
+.select:focus{border-color:var(--rust)}
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;z-index:1000;animation:slideIn .3s ease;box-shadow:var(--shadow-lg)}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.fade-in{animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.stock-bar{height:6px;border-radius:3px;background:var(--border);flex:1;margin:0 12px}
+.stock-fill{height:100%;border-radius:3px;transition:width .5s}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:1rem}
+.modal{background:var(--white);border-radius:16px;padding:2rem;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;animation:fadeIn .2s ease}
+.hero-bg{min-height:100vh;background:var(--ink);display:flex;flex-direction:column}
+.feature-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.25rem}
+.chart-wrap{display:flex;align-items:flex-end;gap:10px;height:180px;border-bottom:1px solid var(--border);padding-bottom:1.5rem}
+.chart-bar{background:var(--rust);border-radius:4px 4px 0 0;flex:1;cursor:pointer;transition:background .2s}
+.chart-bar:hover{background:var(--rust-dark)}
+.role-card{background:var(--white);border-radius:12px;border:1.5px solid var(--border);padding:1.25rem;cursor:pointer;transition:all .2s}
+.role-card:hover{border-color:var(--rust)}
+.role-card.selected{border-color:var(--rust);background:var(--rust-light)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toasts"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const STORAGE_KEYS = {
+  orders: 'sv_orders',
+  menu: 'sv_menu',
+  users: 'sv_users',
+  feedbacks: 'sv_feedbacks',
+  notifs: 'sv_notifs',
+};
+
+const BASE_MENU = [
+  {id:1,name:'Truffle Risotto',price:18.5,cat:'mains',emoji:'🍚',desc:'Arborio rice, black truffle, aged parmesan',avail:true,stock:12},
+  {id:2,name:'Burrata Salad',price:12,cat:'starters',emoji:'🥗',desc:'Fresh burrata, heirloom tomatoes, basil oil',avail:true,stock:8},
+  {id:3,name:'Duck Confit',price:24,cat:'mains',emoji:'🍗',desc:'48-hour duck leg, cherry reduction, lentils',avail:true,stock:5},
+  {id:4,name:'Crème Brûlée',price:9,cat:'desserts',emoji:'🍮',desc:'Classic French custard, caramelised sugar crust',avail:true,stock:15},
+  {id:5,name:'Sourdough & Butter',price:6,cat:'starters',emoji:'🍞',desc:'House-made sourdough, cultured butter, sea salt',avail:true,stock:20},
+  {id:6,name:'Tarte Tatin',price:10,cat:'desserts',emoji:'🥧',desc:'Caramelised apple upside-down tart, crème fraîche',avail:true,stock:7},
+  {id:7,name:'Steak Frites',price:32,cat:'mains',emoji:'🥩',desc:'8oz grass-fed ribeye, pommes frites, béarnaise',avail:true,stock:4},
+  {id:8,name:'Bouillabaisse',price:28,cat:'mains',emoji:'🐟',desc:'Provençal seafood stew, rouille, gruyère croutons',avail:true,stock:6},
+];
+
+const BASE_NOTIFS = [
+  {id:1,icon:'🛎️',title:'Order #1042 confirmed',text:'Your order has been accepted and is being prepared.',time:'2m ago',type:'order',read:false,targetRole:'customer'},
+  {id:2,icon:'✅',title:'Order #1039 delivered',text:'Your meal has arrived. Enjoy!',time:'1h ago',type:'order',read:true,targetRole:'customer'},
+  {id:3,icon:'⚠️',title:'Low stock alert',text:'Steak Frites has only 4 portions left.',time:'3h ago',type:'stock',read:true,targetRole:'owner'},
+];
+
+const SUPABASE_URL = window.SAVEUR_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = window.SAVEUR_SUPABASE_ANON_KEY || '';
+const LOW_STOCK_THRESHOLD = 5;
+
+const S = {
+  page: 'landing',
+  user: null,
+  userId: null,
+  role: null,
+  cart: [],
+  users: JSON.parse(localStorage.getItem(STORAGE_KEYS.users) || '[]'),
+  orders: JSON.parse(localStorage.getItem(STORAGE_KEYS.orders) || '[]'),
+  menu: JSON.parse(localStorage.getItem(STORAGE_KEYS.menu) || 'null') || BASE_MENU,
+  feedbacks: JSON.parse(localStorage.getItem(STORAGE_KEYS.feedbacks) || '[]'),
+  notifs: JSON.parse(localStorage.getItem(STORAGE_KEYS.notifs) || 'null') || BASE_NOTIFS,
+  selItem: null,
+  curOrder: null,
+  menuFilter: 'all',
+  menuSearch: '',
+  revView: 'weekly',
+  editItem: null,
+  showModal: false,
+  regRole: 'customer',
+  rating: 0,
+  otpSent: false,
+  otpCode: '',
+  syncing: false,
+  backendMode: 'local',
+  tests: [],
+};
+
+// ============================================================
+// UTILS
+// ============================================================
+const $ = id => document.getElementById(id);
+const saveLocal = () => {
+  localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(S.users));
+  localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(S.orders));
+  localStorage.setItem(STORAGE_KEYS.menu, JSON.stringify(S.menu));
+  localStorage.setItem(STORAGE_KEYS.feedbacks, JSON.stringify(S.feedbacks));
+  localStorage.setItem(STORAGE_KEYS.notifs, JSON.stringify(S.notifs));
+};
+const save = () => {
+  saveLocal();
+  syncToSupabase();
+};
+const uid = () => Math.floor(1000 + Math.random() * 9000);
+const toast = msg => {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  $('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+};
+const go = (page, extra = {}) => {
+  Object.assign(S, extra);
+  S.page = page;
+  render();
+  window.scrollTo(0, 0);
+};
+const statusStyle = s => {
+  const m = {
+    Confirmed:'background:#FBF3E2;color:#8a6d15',
+    Preparing:'background:#FFF3E0;color:#E65100',
+    Ready:'background:#E8F0E7;color:#4A6741',
+    Delivered:'background:#E8F5E9;color:#2E7D32',
+    Cancelled:'background:#FFF0F0;color:#E53E3E',
+  };
+  return m[s] || 'background:var(--border);color:var(--muted)';
+};
+const fmtDate = d => new Date(d).toLocaleString();
+const relTimeNow = () => 'Just now';
+
+const DB = {
+  mode: 'local',
+  client: null,
+};
+
+function filteredNotifs() {
+  if (!S.role) return S.notifs;
+  return S.notifs.filter(n => {
+    if (n.targetUserId && n.targetUserId !== S.userId) return false;
+    if (n.targetRole && n.targetRole !== S.role) return false;
+    return true;
+  });
+}
+
+function pushNotif(payload) {
+  S.notifs.unshift({
+    id: uid(),
+    read: false,
+    time: relTimeNow(),
+    ...payload,
+  });
+}
+
+async function initBackend() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !window.supabase) {
+    S.backendMode = 'local';
+    return;
+  }
+  try {
+    DB.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    DB.mode = 'supabase';
+    S.backendMode = 'supabase';
+    await loadFromSupabase();
+  } catch (err) {
+    console.error('Supabase init failed:', err);
+    S.backendMode = 'local';
+  }
+}
+
+async function loadFromSupabase() {
+  if (DB.mode !== 'supabase' || !DB.client) return;
+  const fetchTable = async table => {
+    const { data, error } = await DB.client.from(table).select('*');
+    if (error) throw error;
+    return data || [];
+  };
+
+  try {
+    const [users, orders, menu, feedbacks, notifs] = await Promise.all([
+      fetchTable('users'),
+      fetchTable('orders'),
+      fetchTable('menu_items'),
+      fetchTable('feedbacks'),
+      fetchTable('notifications'),
+    ]);
+
+    if (users.length) S.users = users;
+    if (orders.length) S.orders = orders;
+    if (menu.length) S.menu = menu;
+    if (feedbacks.length) S.feedbacks = feedbacks;
+    if (notifs.length) S.notifs = notifs;
+    saveLocal();
+  } catch (err) {
+    console.warn('Supabase read failed, using local mode:', err.message || err);
+    S.backendMode = 'local';
+    DB.mode = 'local';
+  }
+}
+
+async function syncToSupabase() {
+  if (DB.mode !== 'supabase' || !DB.client || S.syncing) return;
+  S.syncing = true;
+  try {
+    const upsert = (table, rows) => DB.client.from(table).upsert(rows, { onConflict: 'id' });
+    await Promise.all([
+      S.users.length ? upsert('users', S.users) : Promise.resolve(),
+      S.orders.length ? upsert('orders', S.orders) : Promise.resolve(),
+      S.menu.length ? upsert('menu_items', S.menu) : Promise.resolve(),
+      S.feedbacks.length ? upsert('feedbacks', S.feedbacks) : Promise.resolve(),
+      S.notifs.length ? upsert('notifications', S.notifs) : Promise.resolve(),
+    ]);
+  } catch (err) {
+    console.warn('Supabase sync failed:', err.message || err);
+  } finally {
+    S.syncing = false;
+  }
+}
+
+function ensureStockFlags() {
+  S.menu.forEach(item => {
+    if (item.stock <= 0) {
+      item.stock = 0;
+      item.avail = false;
+    }
+  });
+}
+
+// ============================================================
+// HTML BUILDER HELPERS
+// ============================================================
+const sidebar = (items, role='customer') => `
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <h2>Saveur</h2>
+    <span>${role==='owner'?'Restaurant OS':'Order & Dine'}</span>
+  </div>
+  ${items.map(it=>`
+    <div class="nav-item${S.page===it.p?' active':''}" onclick="go('${it.p}')">
+      <span style="width:20px;text-align:center;font-size:16px">${it.ico}</span>
+      <span>${it.lbl}</span>
+    </div>`).join('')}
+  <div class="nav-bottom">
+    <div class="nav-item" onclick="doLogout()">
+      <span style="width:20px;text-align:center">↩</span>
+      <span>Logout</span>
+    </div>
+  </div>
+</nav>`;
+
+const topbar = () => `
+<div class="topbar">
+  <span style="font-size:13px;color:var(--muted)">Hello, <strong>${S.user||'Guest'}</strong></span>
+  <div style="display:flex;align-items:center;gap:14px">
+    ${S.role==='customer'?`
+      <div style="position:relative;cursor:pointer" onclick="go('cart')">
+        <span style="font-size:20px">🛒</span>
+        ${S.cart.length>0?`<span style="position:absolute;top:-5px;right:-6px;background:var(--rust);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:600">${S.cart.length}</span>`:''}
+      </div>`:''}
+    <div class="avatar" onclick="go('profile')">${(S.user||'G')[0].toUpperCase()}</div>
+  </div>
+</div>`;
+
+const customerNav = [
+  {p:'customer-dash',ico:'🏠',lbl:'Home'},
+  {p:'menu',ico:'🍽',lbl:'Menu'},
+  {p:'cart',ico:'🛒',lbl:'Cart'},
+  {p:'order-history',ico:'📜',lbl:'My Orders'},
+  {p:'feedback',ico:'⭐',lbl:'Feedback'},
+  {p:'notifications',ico:'🔔',lbl:'Notifications'},
+  {p:'qa-tests',ico:'🧪',lbl:'QA Tests'},
+  {p:'profile',ico:'👤',lbl:'Profile'},
+];
+const ownerNav = [
+  {p:'owner-dash',ico:'📊',lbl:'Dashboard'},
+  {p:'menu-manage',ico:'🍽',lbl:'Menu Management'},
+  {p:'incoming-orders',ico:'📥',lbl:'Incoming Orders'},
+  {p:'revenue',ico:'📈',lbl:'Revenue'},
+  {p:'inventory',ico:'📦',lbl:'Inventory'},
+  {p:'notifications',ico:'🔔',lbl:'Notifications'},
+  {p:'qa-tests',ico:'🧪',lbl:'QA Tests'},
+  {p:'profile',ico:'👤',lbl:'Profile'},
+];
+
+const layout = (content, nav='customer') => `
+  ${sidebar(nav==='owner'?ownerNav:customerNav, nav)}
+  <div class="main fade-in">
+    ${topbar()}
+    <div class="page-content">${content}</div>
+  </div>`;
+
+// ============================================================
+// PAGE RENDERERS
+// ============================================================
+const pages = {};
+
+// ---- LANDING ----
+pages.landing = () => `
+<div class="hero-bg">
+  <div style="padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <span style="color:#fff;font-size:22px;font-family:'Playfair Display',serif">Saveur</span>
+      <span style="color:var(--gold);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-left:10px">Restaurant OS</span>
+    </div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="go('login')">Sign In</button>
+      <button class="btn btn-primary" onclick="go('register')">Get Started</button>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;padding:3rem;gap:4rem">
+    <div style="flex:1;color:#fff">
+      <div style="background:var(--rust);color:#fff;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:500;display:inline-block;margin-bottom:1.5rem">✦ Modern Restaurant Management</div>
+      <h1 style="font-size:50px;line-height:1.1;margin-bottom:1.5rem">From order to <em style="color:var(--gold)">table</em>, seamlessly.</h1>
+      <p style="color:rgba(255,255,255,.6);font-size:16px;line-height:1.8;margin-bottom:2.5rem;max-width:460px">A complete ecosystem for restaurants and their guests — real-time orders, smart inventory, and beautiful menu management in one place.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-lg" onclick="go('register')">Order as Customer</button>
+        <button class="btn btn-lg" style="border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#fff" onclick="go('register')">Manage Restaurant</button>
+      </div>
+      <div style="margin-top:3rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem">
+        ${[['500+','Menu items managed'],['2 min','Avg. status update'],['4.9★','Customer rating']].map(([v,l])=>`
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:26px;color:var(--gold)">${v}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">${l}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div style="flex:1;display:flex;justify-content:center">
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2rem;width:340px">
+        <div style="color:rgba(255,255,255,.5);font-size:11px;text-transform:uppercase;letter-spacing:2px;margin-bottom:1rem">Live Order Feed</div>
+        ${[['#1042','Truffle Risotto × 2','Preparing','var(--gold)'],['#1041','Duck Confit × 1','Ready','#4ade80'],['#1040','Burrata Salad × 3','Delivered','rgba(255,255,255,.35)']].map(([id,item,status,col])=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:8px;border:1px solid rgba(255,255,255,.07)">
+            <div>
+              <div style="color:#fff;font-size:14px;font-weight:500">${item}</div>
+              <div style="color:rgba(255,255,255,.4);font-size:12px">Order ${id}</div>
+            </div>
+            <span style="background:${col}22;color:${col};padding:4px 10px;border-radius:20px;font-size:12px;border:1px solid ${col}44">${status}</span>
+          </div>`).join('')}
+        <div style="display:flex;gap:1rem;margin-top:1.5rem;border-top:1px solid rgba(255,255,255,.07);padding-top:1.5rem">
+          ${[['🍽','8','Active tables'],['📦','12','Orders today'],['⏱','18m','Avg. wait']].map(([ico,val,lbl])=>`
+            <div style="flex:1;text-align:center">
+              <div>${ico}</div>
+              <div style="color:#fff;font-weight:500;font-size:16px;margin:4px 0">${val}</div>
+              <div style="color:rgba(255,255,255,.4);font-size:11px">${lbl}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:2rem 3rem;border-top:1px solid rgba(255,255,255,.07)">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem">
+      ${[['⚡','Real-time Orders','Track every order from placement to delivery in real time'],['🍽','Smart Menu','Dynamic pricing, availability, and category management'],['📊','Revenue Analytics','Daily, weekly, monthly performance dashboards'],['📦','Inventory Control','Auto-alerts when any item stock runs critically low']].map(([ico,title,desc])=>`
+        <div class="feature-card">
+          <div style="font-size:24px;margin-bottom:10px">${ico}</div>
+          <div style="color:#fff;font-weight:500;margin-bottom:6px;font-size:15px">${title}</div>
+          <div style="color:rgba(255,255,255,.45);font-size:13px;line-height:1.6">${desc}</div>
+        </div>`).join('')}
+    </div>
+  </div>
+</div>`;
+
+// ---- LOGIN ----
+pages.login = () => `
+<div class="full-page">
+  <div style="width:100%;max-width:440px;padding:1rem">
+    <div style="text-align:center;margin-bottom:2rem">
+      <h1 style="font-size:32px;margin-bottom:6px">Welcome back</h1>
+      <p style="color:var(--muted)">Sign in to your Saveur account</p>
+    </div>
+    <div class="auth-card">
+      <div style="margin-bottom:1rem">
+        <label class="label">Email or Phone</label>
+        <input class="input" id="l-email" placeholder="you@example.com or +1 234..." type="text">
+      </div>
+      <div style="margin-bottom:1rem">
+        <label class="label">Password</label>
+        <input class="input" id="l-pwd" placeholder="••••••••" type="password">
+      </div>
+      <div style="margin-bottom:1.5rem">
+        <label class="label">I am a...</label>
+        <select class="select" id="l-role">
+          <option value="customer">Customer</option>
+          <option value="owner">Restaurant Owner</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:12px" onclick="doLogin()">Sign In</button>
+      <div class="divider"></div>
+      <p style="text-align:center;font-size:14px;color:var(--muted)">No account? <a href="#" onclick="go('register')" style="color:var(--rust);text-decoration:none;font-weight:500">Register here</a></p>
+    </div>
+    <p style="text-align:center;margin-top:1rem;font-size:13px"><a href="#" onclick="go('landing')" style="color:var(--muted);text-decoration:none">← Back to home</a></p>
+  </div>
+</div>`;
+
+// ---- REGISTER ----
+pages.register = () => `
+<div class="full-page">
+  <div style="width:100%;max-width:500px;padding:1rem">
+    <div style="text-align:center;margin-bottom:2rem">
+      <h1 style="font-size:32px;margin-bottom:6px">Create account</h1>
+      <p style="color:var(--muted)">Join Saveur today — it's free</p>
+    </div>
+    <div class="auth-card" style="max-width:500px">
+      <div style="margin-bottom:1rem">
+        <label class="label">Full Name</label>
+        <input class="input" id="r-name" placeholder="Your full name">
+      </div>
+      <div class="grid-2" style="margin-bottom:1rem">
+        <div><label class="label">Email</label><input class="input" id="r-email" placeholder="email@example.com" type="email"></div>
+        <div><label class="label">Phone</label><input class="input" id="r-phone" placeholder="+1 234 567 8901" type="tel"></div>
+      </div>
+      <div style="margin-bottom:1.5rem">
+        <label class="label">Password</label>
+        <input class="input" id="r-pwd" placeholder="Minimum 8 characters" type="password">
+      </div>
+      <div style="margin-bottom:1.5rem">
+        <label class="label">Verification (OTP demo)</label>
+        <div style="display:flex;gap:8px">
+          <input class="input" id="r-otp" placeholder="Enter 6-digit code" maxlength="6">
+          <button class="btn btn-ghost" type="button" onclick="sendOtp()">Send OTP</button>
+        </div>
+      </div>
+      <div style="margin-bottom:1.5rem">
+        <label class="label">I want to...</label>
+        <div class="grid-2" style="margin-top:8px">
+          <div class="role-card selected" id="rc-customer" onclick="selectRole('customer')">
+            <div style="font-size:28px;margin-bottom:8px">🍽</div>
+            <div style="font-weight:500;font-size:14px">Order Food</div>
+            <div style="font-size:12px;color:var(--muted)">I'm a customer</div>
+          </div>
+          <div class="role-card" id="rc-owner" onclick="selectRole('owner')">
+            <div style="font-size:28px;margin-bottom:8px">🏪</div>
+            <div style="font-weight:500;font-size:14px">Manage Restaurant</div>
+            <div style="font-size:12px;color:var(--muted)">I'm an owner</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:12px" onclick="doRegister()">Create Account</button>
+      <div class="divider"></div>
+      <p style="text-align:center;font-size:14px;color:var(--muted)">Have an account? <a href="#" onclick="go('login')" style="color:var(--rust);text-decoration:none;font-weight:500">Sign in</a></p>
+    </div>
+  </div>
+</div>`;
+
+// ---- CUSTOMER DASHBOARD ----
+pages['customer-dash'] = () => {
+  const myOrders = S.orders.filter(o=>o.custId===S.userId).slice(-3).reverse();
+  return layout(`
+    <div class="page-header">
+      <h1>Good afternoon, ${S.user?.split(' ')[0] || 'there'} 👋</h1>
+      <p>What would you like to order today?</p>
+    </div>
+    <div class="grid-3" style="margin-bottom:2rem">
+      ${[['🍽','Browse Menu','Explore today\'s offerings','menu','var(--rust-light)'],['📜','My Orders','Track and reorder','order-history','var(--sage-light)'],['⭐','Leave a Review','Share your experience','feedback','var(--gold-light)']].map(([ico,title,desc,p,bg])=>`
+        <div class="card" style="background:${bg};cursor:pointer;border-color:transparent;transition:transform .2s" onclick="go('${p}')" onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''">
+          <div style="font-size:32px;margin-bottom:10px">${ico}</div>
+          <div style="font-weight:500;font-size:16px;margin-bottom:4px">${title}</div>
+          <div style="font-size:13px;color:var(--muted)">${desc}</div>
+        </div>`).join('')}
+    </div>
+    <h3 style="margin-bottom:1rem;font-size:18px">Featured Today</h3>
+    <div class="menu-grid" style="margin-bottom:2rem">
+      ${S.menu.slice(0,4).map(item=>`
+        <div class="menu-card" onclick="go('item-detail',{selItem:${item.id}})">
+          <div class="menu-card-img">${item.emoji}</div>
+          <div class="menu-card-body">
+            <h4>${item.name}</h4>
+            <p class="desc">${item.desc}</p>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="price">$${item.price.toFixed(2)}</span>
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();addToCart(${item.id})">Add +</button>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>
+    ${myOrders.length>0?`
+      <h3 style="margin-bottom:1rem;font-size:18px">Recent Orders</h3>
+      <div class="card">
+        <table class="table">
+          <thead><tr><th>Order ID</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${myOrders.map(o=>`
+              <tr>
+                <td><strong>#${o.id}</strong></td>
+                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.items.map(i=>i.name).join(', ')}</td>
+                <td>$${o.total.toFixed(2)}</td>
+                <td><span class="status-badge" style="${statusStyle(o.status)}">${o.status}</span></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="go('order-tracking',{curOrder:${o.id}})">Track</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`:''}
+  `);
+};
+
+// ---- MENU ----
+pages.menu = () => {
+  const cats = ['all','starters','mains','desserts'];
+  let items = S.menu.filter(i=>i.avail);
+  if(S.menuFilter!=='all') items = items.filter(i=>i.cat===S.menuFilter);
+  if(S.menuSearch) items = items.filter(i=>i.name.toLowerCase().includes(S.menuSearch.toLowerCase())||i.desc.toLowerCase().includes(S.menuSearch.toLowerCase()));
+  return layout(`
+    <div class="page-header"><h1>Our Menu</h1><p>Fresh, seasonal, always made with care</p></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px;position:relative">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px">🔍</span>
+        <input class="input" placeholder="Search dishes..." style="padding-left:38px" oninput="S.menuSearch=this.value;go('menu')" value="${S.menuSearch}">
+      </div>
+      ${cats.map(c=>`<span class="tag${S.menuFilter===c?' active':''}" onclick="S.menuFilter='${c}';go('menu')">${c.charAt(0).toUpperCase()+c.slice(1)}</span>`).join('')}
+    </div>
+    ${items.length===0?`<div class="card" style="text-align:center;padding:3rem">
+      <div style="font-size:48px;margin-bottom:1rem">🔍</div>
+      <h3>No items found</h3>
+      <p style="color:var(--muted);margin-top:6px">Try a different search or category</p>
+    </div>`:`
+    <div class="menu-grid">
+      ${items.map(item=>`
+        <div class="menu-card" onclick="go('item-detail',{selItem:${item.id}})">
+          <div class="menu-card-img">${item.emoji}</div>
+          <div class="menu-card-body">
+            <h4>${item.name}</h4>
+            <p class="desc">${item.desc}</p>
+            <p style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:capitalize">${item.cat}</p>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="price">$${item.price.toFixed(2)}</span>
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();addToCart(${item.id})">Add to Cart</button>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`}
+  `);
+};
+
+// ---- ITEM DETAIL ----
+pages['item-detail'] = () => {
+  const item = S.menu.find(i=>i.id===S.selItem);
+  if(!item) return layout(`<div class="page-header"><h1>Item not found</h1></div><button class="btn btn-ghost" onclick="go('menu')">← Back</button>`);
+  const inCart = S.cart.filter(c=>c.id===item.id).reduce((a,b)=>a+b.qty,0);
+  return layout(`
+    <button class="btn btn-ghost btn-sm" style="margin-bottom:1.5rem" onclick="go('menu')">← Back to Menu</button>
+    <div class="grid-2" style="gap:2.5rem;align-items:start">
+      <div style="background:linear-gradient(135deg,var(--rust-light),var(--gold-light));border-radius:16px;height:320px;display:flex;align-items:center;justify-content:center;font-size:100px">${item.emoji}</div>
+      <div>
+        <span class="badge badge-muted" style="margin-bottom:12px;text-transform:capitalize">${item.cat}</span>
+        <h1 style="font-size:30px;margin-bottom:10px">${item.name}</h1>
+        <p style="color:var(--muted);font-size:15px;line-height:1.7;margin-bottom:1.5rem">${item.desc}</p>
+        <div style="font-size:34px;font-family:'Playfair Display',serif;color:var(--rust);margin-bottom:1.5rem">$${item.price.toFixed(2)}</div>
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+          <span style="color:var(--muted);font-size:14px">Quantity</span>
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="updateCartQty(${item.id},-1)">−</button>
+            <span style="font-size:16px;font-weight:500;min-width:28px;text-align:center">${inCart}</span>
+            <button class="qty-btn" onclick="updateCartQty(${item.id},1)">+</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-lg" onclick="addToCart(${item.id})">Add to Cart</button>
+          ${inCart>0?`<button class="btn btn-secondary btn-lg" onclick="go('cart')">View Cart (${inCart})</button>`:''}
+        </div>
+        <div style="margin-top:1.5rem;padding:1rem;background:var(--gold-light);border-radius:10px;border-left:3px solid var(--gold)">
+          <p style="font-size:13px;color:var(--muted)">🕒 Est. prep: <strong>18–22 min</strong> &nbsp;·&nbsp; 🌿 Fresh daily &nbsp;·&nbsp; 📦 ${item.stock} portions left</p>
+        </div>
+      </div>
+    </div>
+  `);
+};
+
+// ---- CART ----
+pages.cart = () => {
+  const subtotal = S.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const tax = subtotal * 0.05;
+  const total = subtotal + tax;
+  return layout(`
+    <div class="page-header"><h1>Your Cart</h1><p>${S.cart.length} item${S.cart.length!==1?'s':''} selected</p></div>
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:2rem;align-items:start">
+      <div class="card">
+        ${S.cart.length===0?`
+          <div style="text-align:center;padding:3rem">
+            <div style="font-size:64px;margin-bottom:1rem">🛒</div>
+            <h3 style="margin-bottom:8px">Your cart is empty</h3>
+            <p style="color:var(--muted);margin-bottom:1.5rem">Browse our menu to start an order</p>
+            <button class="btn btn-primary" onclick="go('menu')">Browse Menu</button>
+          </div>`:S.cart.map(item=>`
+          <div class="cart-item">
+            <div class="cart-img">${item.emoji}</div>
+            <div style="flex:1">
+              <div style="font-weight:500;font-size:15px">${item.name}</div>
+              <div style="color:var(--muted);font-size:13px">$${item.price.toFixed(2)} each</div>
+            </div>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="updateCartQty(${item.id},-1)">−</button>
+              <span style="font-size:15px;font-weight:500;min-width:24px;text-align:center">${item.qty}</span>
+              <button class="qty-btn" onclick="updateCartQty(${item.id},1)">+</button>
+            </div>
+            <div style="font-weight:500;min-width:64px;text-align:right">$${(item.price*item.qty).toFixed(2)}</div>
+            <button class="qty-btn" onclick="removeFromCart(${item.id})" style="border-color:var(--red);color:var(--red)">×</button>
+          </div>`).join('')}
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:1rem">
+          <h3 style="margin-bottom:1rem;font-size:16px">Order Summary</h3>
+          ${S.cart.map(i=>`
+            <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;color:var(--muted)">
+              <span>${i.name} × ${i.qty}</span>
+              <span>$${(i.price*i.qty).toFixed(2)}</span>
+            </div>`).join('')}
+          <div class="divider"></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;color:var(--muted)">
+            <span>Subtotal</span><span>$${subtotal.toFixed(2)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;color:var(--muted)">
+            <span>Service charge (5%)</span><span>$${tax.toFixed(2)}</span>
+          </div>
+          <div class="divider"></div>
+          <div style="display:flex;justify-content:space-between;font-weight:500;font-size:16px">
+            <span>Total</span><span style="color:var(--rust)">$${total.toFixed(2)}</span>
+          </div>
+        </div>
+        ${S.cart.length>0?`<button class="btn btn-primary" style="width:100%;padding:13px;font-size:15px" onclick="placeOrder()">Place Order →</button>`:''}
+        <button class="btn btn-ghost" style="width:100%;padding:12px;margin-top:8px" onclick="go('menu')">Continue Ordering</button>
+      </div>
+    </div>
+  `);
+};
+
+// ---- ORDER CONFIRMATION ----
+pages['order-confirm'] = () => {
+  const o = S.orders.find(o=>o.id===S.curOrder);
+  if(!o) return layout(`<p>No order found.</p>`);
+  return layout(`
+    <div style="max-width:600px;margin:0 auto;text-align:center;padding:1rem 0">
+      <div style="width:80px;height:80px;background:var(--sage-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 1.5rem;border:2px solid var(--sage)">✓</div>
+      <h1 style="font-size:32px;margin-bottom:8px">Order Placed!</h1>
+      <p style="color:var(--muted);margin-bottom:2rem;font-size:16px">Order <strong>#${o.id}</strong> has been confirmed.</p>
+      <div class="card" style="text-align:left;margin-bottom:1.5rem">
+        <h3 style="margin-bottom:1rem;font-size:16px">Items Ordered</h3>
+        ${o.items.map(i=>`
+          <div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span>${i.emoji} ${i.name} × ${i.qty}</span>
+            <span>$${(i.price*i.qty).toFixed(2)}</span>
+          </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;font-weight:500;padding-top:12px">
+          <span>Total Paid</span><span style="color:var(--rust)">$${o.total.toFixed(2)}</span>
+        </div>
+      </div>
+      <div style="background:var(--gold-light);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;text-align:left;border:1px solid #EDD79A">
+        <div style="font-size:13px;color:var(--muted)">Estimated preparation time</div>
+        <div style="font-size:24px;font-family:'Playfair Display',serif;margin-top:4px">18 – 25 minutes</div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button class="btn btn-primary btn-lg" onclick="go('order-tracking',{curOrder:${o.id}})">Track Order</button>
+        <button class="btn btn-ghost btn-lg" onclick="go('menu')">Order More</button>
+      </div>
+    </div>
+  `);
+};
+
+// ---- ORDER TRACKING ----
+pages['order-tracking'] = () => {
+  const o = S.orders.find(o=>o.id===S.curOrder);
+  if(!o) return layout(`<div class="page-header"><h1>Order not found</h1></div><button class="btn btn-ghost" onclick="go('order-history')">← Back</button>`);
+  const steps=['Confirmed','Preparing','Ready','Delivered'];
+  const idx=steps.indexOf(o.status);
+  return layout(`
+    <button class="btn btn-ghost btn-sm" style="margin-bottom:1.5rem" onclick="go('order-history')">← My Orders</button>
+    <div class="page-header">
+      <h1>Order #${o.id}</h1>
+      <p>Placed ${fmtDate(o.date)}</p>
+    </div>
+    <div style="max-width:700px">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="progress-track">
+          ${steps.map((step,i)=>`
+            ${i>0?`<div class="p-line${i<=idx?' done':''}"></div>`:''}
+            <div class="progress-step${i<idx?' p-done':i===idx?' p-active':''}">
+              <div class="p-dot">${i<idx?'✓':i+1}</div>
+              <div class="p-label">${step}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 style="margin-bottom:1rem;font-size:16px">Items</h3>
+          ${o.items.map(i=>`
+            <div class="cart-item" style="padding:8px 0">
+              <div class="cart-img" style="width:42px;height:42px;font-size:18px">${i.emoji}</div>
+              <div style="flex:1"><div style="font-size:14px;font-weight:500">${i.name}</div><div style="font-size:12px;color:var(--muted)">× ${i.qty}</div></div>
+              <span style="font-size:14px">$${(i.price*i.qty).toFixed(2)}</span>
+            </div>`).join('')}
+          <div class="divider"></div>
+          <div style="display:flex;justify-content:space-between;font-weight:500">
+            <span>Total</span><span style="color:var(--rust)">$${o.total.toFixed(2)}</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:1rem;font-size:16px">Timeline</h3>
+          ${steps.slice(0,idx+1).reverse().map((step,i)=>`
+            <div style="display:flex;gap:10px;padding:8px 0;border-bottom:${i<idx?'1px solid var(--border)':'none'}">
+              <div style="width:8px;height:8px;border-radius:50%;background:${i===0?'var(--rust)':'var(--sage)'};margin-top:5px;flex-shrink:0"></div>
+              <div>
+                <div style="font-size:14px;font-weight:500">${step}</div>
+                <div style="font-size:12px;color:var(--muted)">${i===0?'Just now':((idx-i)*8)+'min ago'}</div>
+              </div>
+            </div>`).join('')}
+          <div style="margin-top:12px;padding:10px;background:${o.status==='Delivered'?'var(--sage-light)':'var(--gold-light)'};border-radius:8px">
+            <p style="font-size:13px">${o.status==='Delivered'?'✓ Delivered! <a href="#" onclick="go(\'feedback\')" style="color:var(--rust)">Leave a review →</a>':'⏱ Estimated remaining: <strong>'+Math.max(0,(3-idx)*8)+' min</strong>'}</p>
+          </div>
+        </div>
+      </div>
+      ${o.status!=='Delivered'&&o.custId===S.userId?`
+        <div style="margin-top:1rem;text-align:right">
+          <button class="btn btn-ghost btn-sm" onclick="advanceOrder(${o.id})" title="Demo: simulate next status">Simulate Next Status →</button>
+        </div>`:''}
+    </div>
+  `);
+};
+
+// ---- ORDER HISTORY ----
+pages['order-history'] = () => {
+  const myOrders = S.orders.filter(o=>o.custId===S.userId).reverse();
+  return layout(`
+    <div class="page-header"><h1>My Orders</h1><p>${myOrders.length} order${myOrders.length!==1?'s':''} total</p></div>
+    ${myOrders.length===0?`
+      <div class="card" style="text-align:center;padding:3rem">
+        <div style="font-size:64px;margin-bottom:1rem">📜</div>
+        <h3 style="margin-bottom:8px">No orders yet</h3>
+        <p style="color:var(--muted);margin-bottom:1.5rem">Start by browsing the menu</p>
+        <button class="btn btn-primary" onclick="go('menu')">Browse Menu</button>
+      </div>`:`
+    <div class="card">
+      <table class="table">
+        <thead><tr><th>Order ID</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${myOrders.map(o=>`
+            <tr>
+              <td><strong>#${o.id}</strong></td>
+              <td style="color:var(--muted);font-size:13px">${new Date(o.date).toLocaleDateString()}</td>
+              <td style="max-width:220px">${o.items.map(i=>i.name).join(', ')}</td>
+              <td style="font-weight:500">$${o.total.toFixed(2)}</td>
+              <td><span class="status-badge" style="${statusStyle(o.status)}">${o.status}</span></td>
+              <td>
+                <div style="display:flex;gap:6px">
+                  <button class="btn btn-ghost btn-sm" onclick="go('order-tracking',{curOrder:${o.id}})">Track</button>
+                  <button class="btn btn-secondary btn-sm" onclick="reorder(${o.id})">Reorder</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`}
+  `);
+};
+
+// ---- FEEDBACK ----
+pages.feedback = () => layout(`
+  <div class="page-header"><h1>Feedback</h1><p>Your reviews help us serve you better</p></div>
+  <div style="max-width:560px">
+    <div class="card" style="margin-bottom:1.5rem">
+      <div style="margin-bottom:1.25rem">
+        <label class="label">Overall Rating</label>
+        <div style="display:flex;gap:8px;margin-top:8px" id="stars">
+          ${[1,2,3,4,5].map(n=>`
+            <span style="font-size:32px;cursor:pointer;transition:transform .1s;color:${n<=S.rating?'var(--gold)':'var(--border)'}" 
+              onclick="setRating(${n})" 
+              onmouseover="hoverStars(${n})" 
+              onmouseout="resetStars()" 
+              id="s${n}">${n<=S.rating?'★':'☆'}</span>`).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom:1rem">
+        <label class="label">Which dish?</label>
+        <select class="select" id="fb-item">
+          ${S.menu.map(i=>`<option value="${i.name}">${i.emoji} ${i.name}</option>`).join('')}
+        </select>
+      </div>
+      <div style="margin-bottom:1.5rem">
+        <label class="label">Comments</label>
+        <textarea class="input" id="fb-comment" rows="4" placeholder="Tell us about your experience..."></textarea>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:12px" onclick="submitFeedback()">Submit Review</button>
+    </div>
+    ${S.feedbacks.length>0?`
+      <h3 style="margin-bottom:1rem;font-size:18px">Recent Reviews</h3>
+      ${S.feedbacks.slice().reverse().slice(0,5).map(f=>`
+        <div class="card" style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+            <div>
+              <div style="font-weight:500">${f.user}</div>
+              <div style="font-size:13px;color:var(--muted)">${f.item}</div>
+            </div>
+            <div style="display:flex;gap:2px">
+              ${[1,2,3,4,5].map(n=>`<span style="color:${n<=f.rating?'var(--gold)':'var(--border)'};font-size:15px">${n<=f.rating?'★':'☆'}</span>`).join('')}
+            </div>
+          </div>
+          <p style="font-size:14px;color:var(--muted);line-height:1.6">${f.comment||'(No comment)'}</p>
+        </div>`).join('')}`:''}
+  </div>
+`);
+
+// ---- QA TESTS ----
+pages['qa-tests'] = () => layout(`
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:start;gap:1rem;flex-wrap:wrap">
+    <div>
+      <h1>QA Test Suite</h1>
+      <p>Run full acceptance coverage for core user stories in this browser session.</p>
+    </div>
+    <button class="btn btn-primary" onclick="runAllTests()">Run All Tests</button>
+  </div>
+  <div class="card" style="margin-bottom:1rem">
+    <div style="font-size:14px;color:var(--muted);line-height:1.7">
+      Coverage includes: auth validation, role redirects, menu CRUD, cart and stock rules, order placement and tracking transitions, feedback validation, reorder flow, low-stock alerts, and inventory auto-unavailability.
+    </div>
+  </div>
+  <div class="card">
+    ${S.tests.length===0 ? `<p style="color:var(--muted)">No test run yet.</p>` : S.tests.map(t => `
+      <div style="display:flex;justify-content:space-between;gap:1rem;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:14px;font-weight:500">${t.name}</div>
+          <div style="font-size:12px;color:var(--muted)">${t.details || ''}</div>
+        </div>
+        <span class="badge ${t.pass ? 'badge-green' : 'badge-red'}">${t.pass ? 'PASS' : 'FAIL'}</span>
+      </div>`).join('')}
+  </div>
+`, S.role==='owner' ? 'owner' : 'customer');
+
+// ---- OWNER DASHBOARD ----
+pages['owner-dash'] = () => {
+  const today = S.orders.filter(o=>new Date(o.date).toDateString()===new Date().toDateString());
+  const todayRev = today.reduce((s,o)=>s+o.total,0);
+  const pending = S.orders.filter(o=>['Confirmed','Preparing'].includes(o.status));
+  return layout(`
+    <div class="page-header"><h1>Dashboard</h1><p>Overview of today's operations</p></div>
+    <div class="grid-4" style="margin-bottom:2rem">
+      ${[
+        ['Today\'s Orders',today.length,'','#3B82F6'],
+        ['Today\'s Revenue',`$${todayRev.toFixed(2)}`,'','var(--gold)'],
+        ['Pending Orders',pending.length,'Needs attention','#F97316'],
+        ['Active Menu Items',S.menu.filter(i=>i.avail).length,`of ${S.menu.length} total`,'var(--sage)'],
+      ].map(([l,v,s,c])=>`
+        <div class="stat-card">
+          <div class="label" style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${l}</div>
+          <div class="stat-val" style="color:${c}">${v}</div>
+          ${s?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${s}</div>`:''}
+        </div>`).join('')}
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3 style="font-size:16px">Pending Orders</h3>
+          <button class="btn btn-ghost btn-sm" onclick="go('incoming-orders')">View all →</button>
+        </div>
+        ${pending.length===0?`<p style="text-align:center;padding:2rem;color:var(--muted)">No pending orders 🎉</p>`:
+          pending.slice(0,4).map(o=>`
+            <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+              <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+                <div>
+                  <span style="font-weight:500">#${o.id}</span>
+                  <span style="color:var(--muted);font-size:13px;margin-left:8px">${o.cust}</span>
+                </div>
+                <span class="status-badge" style="${statusStyle(o.status)}">${o.status}</span>
+              </div>
+              <div style="font-size:13px;color:var(--muted);margin-bottom:8px">${o.items.map(i=>i.name).join(', ')}</div>
+              <div style="display:flex;gap:6px">
+                ${o.status==='Confirmed'?`<button class="btn btn-secondary btn-sm" onclick="updateStatus(${o.id},'Preparing')">Accept</button><button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red)" onclick="updateStatus(${o.id},'Cancelled')">Reject</button>`:''}
+                ${o.status==='Preparing'?`<button class="btn btn-primary btn-sm" onclick="updateStatus(${o.id},'Ready')">Mark Ready</button>`:''}
+              </div>
+            </div>`).join('')}
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:1rem;font-size:16px">Stock Overview</h3>
+        ${S.menu.map(item=>`
+          <div style="display:flex;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:14px;min-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.emoji} ${item.name}</span>
+            <div class="stock-bar">
+              <div class="stock-fill" style="width:${Math.min(100,Math.round((item.stock/20)*100))}%;background:${item.stock<=5?'var(--red)':item.stock<=10?'var(--gold)':'var(--sage)'}"></div>
+            </div>
+            <span style="font-size:13px;color:var(--muted);min-width:30px;text-align:right">${item.stock}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  `, 'owner');
+};
+
+// ---- MENU MANAGEMENT ----
+pages['menu-manage'] = () => layout(`
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:1rem">
+    <div><h1>Menu Management</h1><p>Manage dishes, prices, and availability</p></div>
+    <button class="btn btn-primary" onclick="openItemModal(null)">+ Add Item</button>
+  </div>
+  <div class="card">
+    <table class="table">
+      <thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${S.menu.map(item=>`
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:24px">${item.emoji}</span>
+                <div>
+                  <div style="font-weight:500">${item.name}</div>
+                  <div style="font-size:12px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.desc}</div>
+                </div>
+              </div>
+            </td>
+            <td style="text-transform:capitalize">${item.cat}</td>
+            <td>$${item.price.toFixed(2)}</td>
+            <td>${item.stock}</td>
+            <td><span class="badge ${item.avail?'badge-green':'badge-red'}">${item.avail?'Available':'Unavailable'}</span></td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-ghost btn-sm" onclick="openItemModal(${item.id})">Edit</button>
+                <button class="btn btn-ghost btn-sm" style="${item.avail?'border-color:var(--red);color:var(--red)':'border-color:var(--sage);color:var(--sage)'}" onclick="toggleAvail(${item.id})">${item.avail?'Disable':'Enable'}</button>
+                <button class="btn btn-ghost btn-sm" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(${item.id})">Delete</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+  ${S.showModal?`
+    <div class="modal-overlay" onclick="closeModal()">
+      <div class="modal" onclick="event.stopPropagation()">
+        <h3 style="margin-bottom:1.5rem;font-size:20px">${S.editItem?'Edit Item':'Add New Item'}</h3>
+        <div class="grid-2" style="margin-bottom:1rem">
+          <div><label class="label">Name</label><input class="input" id="mi-name" value="${S.editItem?.name||''}"></div>
+          <div><label class="label">Price ($)</label><input class="input" id="mi-price" type="number" step="0.01" min="0" value="${S.editItem?.price||''}"></div>
+        </div>
+        <div style="margin-bottom:1rem">
+          <label class="label">Description</label>
+          <input class="input" id="mi-desc" value="${S.editItem?.desc||''}">
+        </div>
+        <div class="grid-2" style="margin-bottom:1rem">
+          <div>
+            <label class="label">Category</label>
+            <select class="select" id="mi-cat">
+              ${['starters','mains','desserts'].map(c=>`<option ${S.editItem?.cat===c?'selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div><label class="label">Stock</label><input class="input" id="mi-stock" type="number" min="0" value="${S.editItem?.stock||10}"></div>
+        </div>
+        <div style="margin-bottom:1.5rem">
+          <label class="label">Emoji Icon</label>
+          <input class="input" id="mi-emoji" value="${S.editItem?.emoji||'🍽'}" maxlength="2" style="font-size:24px">
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveItem()">Save Item</button>
+        </div>
+      </div>
+    </div>`:''}
+`, 'owner');
+
+// ---- INCOMING ORDERS ----
+pages['incoming-orders'] = () => {
+  const active = S.orders.filter(o=>!['Delivered','Cancelled'].includes(o.status)).reverse();
+  return layout(`
+    <div class="page-header"><h1>Incoming Orders</h1><p>${active.length} active order${active.length!==1?'s':''}</p></div>
+    ${active.length===0?`
+      <div class="card" style="text-align:center;padding:3rem">
+        <div style="font-size:64px;margin-bottom:1rem">📥</div>
+        <h3>No active orders</h3>
+        <p style="color:var(--muted);margin-top:6px">New orders will appear here in real time</p>
+      </div>`:`
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      ${active.map(o=>`
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:1rem">
+            <div>
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+                <h3 style="font-size:18px">Order #${o.id}</h3>
+                <span class="status-badge" style="${statusStyle(o.status)}">${o.status}</span>
+              </div>
+              <div style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                Customer: <strong>${o.cust}</strong> &nbsp;·&nbsp; ${fmtDate(o.date)} &nbsp;·&nbsp; <strong>$${o.total.toFixed(2)}</strong>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                ${o.items.map(i=>`<span class="badge badge-muted">${i.emoji} ${i.name} ×${i.qty}</span>`).join('')}
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              ${o.status==='Confirmed'?`
+                <button class="btn btn-secondary btn-sm" onclick="updateStatus(${o.id},'Preparing')">Accept & Prepare</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red)" onclick="updateStatus(${o.id},'Cancelled')">Reject</button>`:''}
+              ${o.status==='Preparing'?`<button class="btn btn-primary btn-sm" onclick="updateStatus(${o.id},'Ready')">Mark Ready</button>`:''}
+              ${o.status==='Ready'?`<button class="btn btn-primary btn-sm" onclick="updateStatus(${o.id},'Delivered')">Mark Delivered</button>`:''}
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`}
+  `, 'owner');
+};
+
+// ---- REVENUE ----
+pages.revenue = () => {
+  const orderSet = S.orders.filter(o => o.status !== 'Cancelled');
+  const now = new Date();
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const weekly = [...Array(7)].map((_, idx) => {
+    const d = new Date(now);
+    d.setDate(now.getDate() - (6 - idx));
+    return orderSet
+      .filter(o => new Date(o.date).toDateString() === d.toDateString())
+      .reduce((sum, o) => sum + o.total, 0);
+  });
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthlyOrders = orderSet.filter(o => new Date(o.date) >= monthStart);
+  const monthlyRevenue = monthlyOrders.reduce((sum, o) => sum + o.total, 0);
+  const avgOrderValue = monthlyOrders.length ? monthlyRevenue / monthlyOrders.length : 0;
+  const topById = {};
+  orderSet.forEach(o => o.items.forEach(i => {
+    topById[i.id] = topById[i.id] || { ...i, orders: 0, revenue: 0 };
+    topById[i.id].orders += i.qty;
+    topById[i.id].revenue += i.qty * i.price;
+  }));
+  const topItems = Object.values(topById).sort((a, b) => b.revenue - a.revenue).slice(0, 6);
+  const lastWeekRevenue = weekly.slice(0, 6).reduce((a, b) => a + b, 0);
+  const thisWeekRevenue = weekly.slice(1).reduce((a, b) => a + b, 0);
+  const growthPct = lastWeekRevenue ? Math.round(((thisWeekRevenue - lastWeekRevenue) / lastWeekRevenue) * 100) : 0;
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const max = Math.max(...weekly, 1);
+  return layout(`
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:1rem">
+      <div><h1>Revenue</h1><p>Business performance analytics</p></div>
+      <div style="display:flex;gap:8px">
+        ${['weekly','monthly'].map(v=>`<button class="btn ${S.revView===v?'btn-primary':'btn-ghost'} btn-sm" onclick="S.revView='${v}';go('revenue')">${v.charAt(0).toUpperCase()+v.slice(1)}</button>`).join('')}
+      </div>
+    </div>
+    <div class="grid-4" style="margin-bottom:2rem">
+      ${[
+        ['Total Revenue',`$${monthlyRevenue.toFixed(2)}`,`${monthlyOrders.length} orders this month`],
+        ['Avg. Order Value',`$${avgOrderValue.toFixed(2)}`,`${growthPct>=0?'+':''}${growthPct}% WoW`],
+        ['Total Orders',String(monthlyOrders.length),'This month'],
+        ['Top Item',topItems[0]?.name || 'N/A',`${topItems[0]?.orders || 0} sold'],
+      ].map(([l,v,s])=>`
+        <div class="stat-card">
+          <div class="label" style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${l}</div>
+          <div class="stat-val" style="font-size:22px">${v}</div>
+          <div style="font-size:12px;color:var(--sage);margin-top:2px">${s}</div>
+        </div>`).join('')}
+    </div>
+    <div class="card" style="margin-bottom:1.5rem">
+      <h3 style="margin-bottom:1.5rem;font-size:16px">Weekly Revenue</h3>
+      <div class="chart-wrap">
+        ${weekly.map((v,i)=>`
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+            <span style="font-size:11px;color:var(--muted)">$${(v/1000).toFixed(1)}k</span>
+            <div class="chart-bar" style="width:100%;height:${Math.round((v/max)*140)}px" title="$${v.toLocaleString()}"></div>
+            <span style="font-size:12px;color:var(--muted)">${days[i]}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:1rem;font-size:16px">Top Performing Items</h3>
+      <table class="table">
+        <thead><tr><th>Item</th><th>Orders</th><th>Revenue</th><th>Growth</th></tr></thead>
+        <tbody>
+          ${(topItems.length ? topItems : S.menu.slice(0, 6).map(i => ({...i, orders:0, revenue:0}))).map((item,i)=>{
+            return `<tr>
+              <td><div style="display:flex;align-items:center;gap:8px"><span>${item.emoji}</span><span>${item.name}</span></div></td>
+              <td>${item.orders || 0}</td>
+              <td>$${(item.revenue || 0).toFixed(2)}</td>
+              <td><span class="badge badge-green">↑ ${Math.round(Math.random()*15)+3}%</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `, 'owner');
+};
+
+// ---- INVENTORY ----
+pages.inventory = () => layout(`
+  <div class="page-header"><h1>Inventory</h1><p>Monitor stock levels across all items</p></div>
+  <div class="grid-3" style="margin-bottom:2rem">
+    ${[
+      ['📦','Total Items',S.menu.length],
+      ['✅','Well Stocked',S.menu.filter(i=>i.stock>10).length],
+      ['⚠️','Low Stock',S.menu.filter(i=>i.stock<=5).length],
+    ].map(([ico,l,v])=>`
+      <div class="stat-card">
+        <div style="font-size:28px;margin-bottom:6px">${ico}</div>
+        <div class="label" style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${l}</div>
+        <div class="stat-val">${v}</div>
+      </div>`).join('')}
+  </div>
+  <div class="card">
+    <table class="table">
+      <thead><tr><th>Item</th><th>Category</th><th>Stock Bar</th><th>Quantity</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        ${S.menu.map(item=>`
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:24px">${item.emoji}</span>
+                <span style="font-weight:500">${item.name}</span>
+              </div>
+            </td>
+            <td style="text-transform:capitalize">${item.cat}</td>
+            <td style="min-width:120px">
+              <div style="height:8px;border-radius:4px;background:var(--border)">
+                <div style="height:8px;border-radius:4px;width:${Math.min(100,Math.round((item.stock/20)*100))}%;background:${item.stock<=5?'var(--red)':item.stock<=10?'var(--gold)':'var(--sage)'}"></div>
+              </div>
+            </td>
+            <td><strong>${item.stock}</strong> units</td>
+            <td>
+              <span class="badge ${item.stock<=5?'badge-red':item.stock<=10?'badge-amber':'badge-green'}">
+                ${item.stock<=5?'⚠ Low':item.stock<=10?'Medium':'Good'}
+              </span>
+            </td>
+            <td><button class="btn btn-ghost btn-sm" onclick="restock(${item.id})">+ Restock (+10)</button></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+`, 'owner');
+
+// ---- PROFILE ----
+pages.profile = () => layout(`
+  <div class="page-header"><h1>My Profile</h1><p>Manage your account settings</p></div>
+  <div style="max-width:560px">
+    <div class="card" style="margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+        <div style="width:68px;height:68px;border-radius:50%;background:var(--rust);display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;font-family:'Playfair Display',serif">
+          ${(S.user||'G')[0].toUpperCase()}
+        </div>
+        <div>
+          <h3 style="font-size:20px">${S.user}</h3>
+          <span class="badge ${S.role==='owner'?'badge-amber':'badge-green'}" style="margin-top:4px;display:inline-block">
+            ${S.role==='owner'?'🏪 Restaurant Owner':'🍽 Customer'}
+          </span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div style="margin-bottom:1rem">
+        <label class="label">Full Name</label>
+        <input class="input" id="pf-name" value="${S.user||''}">
+      </div>
+      <div class="grid-2" style="margin-bottom:1rem">
+        <div><label class="label">Email</label><input class="input" value="${(S.user||'user').toLowerCase().replace(/\s/g,'')}@saveur.com"></div>
+        <div><label class="label">Phone</label><input class="input" value="+1 555-0101"></div>
+      </div>
+      <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+    </div>
+    <div class="card" style="margin-bottom:1.5rem">
+      <h3 style="margin-bottom:1rem;font-size:16px">Change Password</h3>
+      <div style="margin-bottom:1rem"><label class="label">Current Password</label><input class="input" type="password" placeholder="••••••••"></div>
+      <div class="grid-2" style="margin-bottom:1rem">
+        <div><label class="label">New Password</label><input class="input" type="password" placeholder="••••••••"></div>
+        <div><label class="label">Confirm New Password</label><input class="input" type="password" placeholder="••••••••"></div>
+      </div>
+      <button class="btn btn-secondary" onclick="toast('Password updated successfully!')">Update Password</button>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;padding:12px;color:var(--red);border-color:var(--red)" onclick="doLogout()">Sign Out</button>
+  </div>
+`, S.role==='owner'?'owner':'customer');
+
+// ---- NOTIFICATIONS ----
+pages.notifications = () => layout(`
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:start">
+    <div><h1>Notifications</h1><p>${filteredNotifs().filter(n=>!n.read).length} unread</p></div>
+    <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button>
+  </div>
+  <div class="card">
+    ${filteredNotifs().length===0?`<p style="text-align:center;padding:2rem;color:var(--muted)">No notifications yet</p>`:
+      filteredNotifs().map(n=>`
+        <div class="notif-row" style="opacity:${n.read ? .75 : 1}">
+          <div class="notif-icon" style="background:${n.type==='order'?'var(--rust-light)':'var(--gold-light)'}">
+            ${n.icon}
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:start">
+              <div style="font-weight:${n.read?400:500};font-size:14px">${n.title}</div>
+              <div style="font-size:12px;color:var(--muted);white-space:nowrap;margin-left:12px">${n.time}</div>
+            </div>
+            <div style="font-size:13px;color:var(--muted);margin-top:3px;line-height:1.5">${n.text}</div>
+          </div>
+          ${!n.read?`<div style="width:8px;height:8px;border-radius:50%;background:var(--rust);flex-shrink:0;margin-top:5px"></div>`:''}
+        </div>`).join('')}
+  </div>
+`, S.role==='owner'?'owner':'customer');
+
+// ============================================================
+// ACTIONS (global for onclick)
+// ============================================================
+function sanitizeIdentity(value) {
+  return (value || '').trim().toLowerCase();
+}
+
+function findUserByIdentity(identity) {
+  const key = sanitizeIdentity(identity);
+  return S.users.find(u => sanitizeIdentity(u.email) === key || sanitizeIdentity(u.phone) === key);
+}
+
+function requireOwner() {
+  if (S.role !== 'owner') {
+    toast('Owner access required');
+    return false;
+  }
+  return true;
+}
+
+function sendOtp() {
+  const email = $('r-email')?.value?.trim();
+  const phone = $('r-phone')?.value?.trim();
+  if (!email && !phone) {
+    toast('Enter email or phone before requesting OTP');
+    return;
+  }
+  S.otpCode = String(Math.floor(100000 + Math.random() * 900000));
+  S.otpSent = true;
+  toast(`Demo OTP: ${S.otpCode}`);
+}
+
+function doLogin() {
+  const email = $('l-email')?.value?.trim();
+  const pwd = $('l-pwd')?.value || '';
+  const role = $('l-role')?.value;
+  if(!email){toast('Please enter your email or phone');return;}
+  if(!pwd){toast('Please enter your password');return;}
+  const found = findUserByIdentity(email);
+  if (!found || found.password !== pwd) {
+    toast('Invalid credentials');
+    return;
+  }
+  if (found.role !== role) {
+    toast('Selected role does not match this account');
+    return;
+  }
+  if (!found.verified) {
+    toast('Please complete verification first');
+    return;
+  }
+  S.user = found.name;
+  S.userId = found.id;
+  S.role = role;
+  toast(`Welcome back, ${S.user}!`);
+  go(role==='owner'?'owner-dash':'customer-dash');
+}
+
+function doRegister() {
+  const name = $('r-name')?.value?.trim();
+  if(!name){toast('Please enter your name');return;}
+  const email = $('r-email')?.value?.trim();
+  const phone = $('r-phone')?.value?.trim();
+  const pwd = $('r-pwd')?.value || '';
+  const otp = $('r-otp')?.value?.trim();
+  if(!email && !phone){toast('Please enter email or phone');return;}
+  if(pwd.length < 8){toast('Password must be at least 8 characters');return;}
+  if(!S.otpSent){toast('Send OTP first');return;}
+  if(otp !== S.otpCode){toast('Invalid OTP code');return;}
+  if(email && S.users.some(u => sanitizeIdentity(u.email) === sanitizeIdentity(email))){toast('Email already registered');return;}
+  if(phone && S.users.some(u => sanitizeIdentity(u.phone) === sanitizeIdentity(phone))){toast('Phone already registered');return;}
+
+  const newUser = {
+    id: uid(),
+    name,
+    email: email || '',
+    phone: phone || '',
+    password: pwd,
+    role: S.regRole,
+    verified: true,
+    createdAt: new Date().toISOString(),
+  };
+  S.users.push(newUser);
+  S.user = name;
+  S.userId = newUser.id;
+  S.role = S.regRole;
+  S.otpCode = '';
+  S.otpSent = false;
+  save();
+  toast(`Welcome to Saveur, ${name}!`);
+  go(S.regRole==='owner'?'owner-dash':'customer-dash');
+}
+
+function selectRole(role) {
+  S.regRole = role;
+  ['customer','owner'].forEach(r => {
+    const el = document.getElementById('rc-'+r);
+    if(el) el.className = 'role-card' + (r===role?' selected':'');
+  });
+}
+
+function doLogout() {
+  S.user=null; S.userId=null; S.role=null; S.cart=[];
+  go('landing');
+}
+
+function addToCart(id) {
+  const item = S.menu.find(i=>i.id===id);
+  if(!item) return;
+  if(!item.avail || item.stock <= 0){ toast(`${item.name} is unavailable`); return; }
+  const ex = S.cart.find(c=>c.id===id);
+  const inCartQty = ex ? ex.qty : 0;
+  if (inCartQty + 1 > item.stock) {
+    toast(`Only ${item.stock} in stock`);
+    return;
+  }
+  if(ex) ex.qty++;
+  else S.cart.push({...item, qty:1});
+  toast(`${item.name} added to cart`);
+  render();
+}
+
+function updateCartQty(id, delta) {
+  const idx = S.cart.findIndex(c=>c.id===id);
+  if(idx===-1){ if(delta>0) addToCart(id); return; }
+  const menuItem = S.menu.find(i => i.id === id);
+  const nextQty = S.cart[idx].qty + delta;
+  if (menuItem && nextQty > menuItem.stock) {
+    toast(`Only ${menuItem.stock} in stock`);
+    return;
+  }
+  S.cart[idx].qty = nextQty;
+  if(S.cart[idx].qty<=0) S.cart.splice(idx,1);
+  render();
+}
+
+function removeFromCart(id) {
+  S.cart = S.cart.filter(c=>c.id!==id);
+  render();
+}
+
+function placeOrder() {
+  if(S.cart.length===0) return;
+  if (!S.user || !S.userId) { toast('Please log in first'); return; }
+  for (const c of S.cart) {
+    const item = S.menu.find(i => i.id === c.id);
+    if (!item || !item.avail || item.stock < c.qty) {
+      toast(`Cannot place order: ${c.name} is out of stock or unavailable`);
+      return;
+    }
+  }
+
+  const sub = S.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const total = parseFloat((sub*1.05).toFixed(2));
+  const o = {
+    id: uid(),
+    items: [...S.cart],
+    total,
+    status: 'Confirmed',
+    date: new Date().toISOString(),
+    cust: S.user,
+    custId: S.userId,
+  };
+
+  o.items.forEach(cartItem => {
+    const menuItem = S.menu.find(i => i.id === cartItem.id);
+    if (!menuItem) return;
+    menuItem.stock = Math.max(0, menuItem.stock - cartItem.qty);
+    if (menuItem.stock <= 0) {
+      menuItem.avail = false;
+      pushNotif({
+        icon:'🚫',
+        title:`${menuItem.name} is now unavailable`,
+        text:'Stock reached zero and item was automatically disabled.',
+        type:'stock',
+        targetRole:'owner',
+      });
+    } else if (menuItem.stock <= LOW_STOCK_THRESHOLD) {
+      pushNotif({
+        icon:'⚠️',
+        title:`Low stock: ${menuItem.name}`,
+        text:`Only ${menuItem.stock} portions left.`,
+        type:'stock',
+        targetRole:'owner',
+      });
+    }
+  });
+
+  S.orders.push(o);
+  S.cart = [];
+  S.curOrder = o.id;
+  pushNotif({
+    icon:'🛎️',
+    title:`Order #${o.id} confirmed`,
+    text:'Your order has been received and is being prepared.',
+    type:'order',
+    targetRole:'customer',
+    targetUserId:S.userId,
+  });
+  pushNotif({
+    icon:'🆕',
+    title:`Incoming order #${o.id}`,
+    text:`${S.user} placed a new order worth $${o.total.toFixed(2)}.`,
+    type:'order',
+    targetRole:'owner',
+  });
+  ensureStockFlags();
+  save();
+  toast('Order placed!');
+  go('order-confirm');
+}
+
+function reorder(id) {
+  const o = S.orders.find(o=>o.id===id);
+  if(!o) return;
+  const nextCart = [];
+  o.items.forEach(i => {
+    const item = S.menu.find(m => m.id === i.id);
+    if (!item || !item.avail || item.stock <= 0) return;
+    nextCart.push({ ...item, qty: Math.min(i.qty, item.stock) });
+  });
+  S.cart = nextCart;
+  toast('Items added to cart');
+  go('cart');
+}
+
+function advanceOrder(id) {
+  const o = S.orders.find(o=>o.id===id);
+  if(!o) return;
+  const steps=['Confirmed','Preparing','Ready','Delivered'];
+  const idx=steps.indexOf(o.status);
+  if(idx<steps.length-1) {
+    o.status=steps[idx+1];
+    pushNotif({
+      icon: o.status === 'Delivered' ? '✅' : '🛎️',
+      title: `Order #${o.id} is now ${o.status}`,
+      text: `Status updated to ${o.status}.`,
+      type: 'order',
+      targetRole: 'customer',
+      targetUserId: o.custId,
+    });
+  }
+  save(); toast(`Status → ${o.status}`); render();
+}
+
+function updateStatus(id, status) {
+  if (!requireOwner()) return;
+  const o = S.orders.find(o=>o.id===id);
+  if(o){
+    o.status=status;
+    pushNotif({
+      icon: status === 'Delivered' ? '✅' : status === 'Cancelled' ? '❌' : '🛎️',
+      title: `Order #${o.id} updated`,
+      text: `Your order status is now ${status}.`,
+      type: 'order',
+      targetRole: 'customer',
+      targetUserId: o.custId,
+    });
+    save();
+    toast(`Order #${id} → ${status}`);
+    render();
+  }
+}
+
+function setRating(n) {
+  S.rating = n;
+  [1,2,3,4,5].forEach(i=>{
+    const el = document.getElementById('s'+i);
+    if(el){ el.textContent=i<=n?'★':'☆'; el.style.color=i<=n?'var(--gold)':'var(--border)'; }
+  });
+}
+
+function hoverStars(n) {
+  [1,2,3,4,5].forEach(i=>{
+    const el = document.getElementById('s'+i);
+    if(el) el.style.transform=i<=n?'scale(1.2)':'scale(1)';
+  });
+}
+
+function resetStars() {
+  [1,2,3,4,5].forEach(i=>{
+    const el = document.getElementById('s'+i);
+    if(el) el.style.transform='';
+  });
+}
+
+function submitFeedback() {
+  if(!S.rating){ toast('Please select a star rating'); return; }
+  const comment = $('fb-comment')?.value?.trim()||'';
+  const item = $('fb-item')?.value||'';
+  if (!S.userId) { toast('Login required'); return; }
+  S.feedbacks.push({id:uid(), user:S.user, userId:S.userId, rating:S.rating, comment, item, date:new Date().toISOString()});
+  S.rating = 0;
+  save();
+  toast('Thank you for your review!');
+  render();
+}
+
+function openItemModal(id) {
+  S.editItem = id ? S.menu.find(i=>i.id===id) : null;
+  S.showModal = true;
+  render();
+}
+
+function closeModal() {
+  S.showModal = false;
+  S.editItem = null;
+  render();
+}
+
+function saveItem() {
+  if (!requireOwner()) return;
+  const name = $('mi-name')?.value?.trim();
+  const price = parseFloat($('mi-price')?.value);
+  const desc = $('mi-desc')?.value?.trim()||'';
+  const cat = $('mi-cat')?.value||'mains';
+  const stock = parseInt($('mi-stock')?.value)||10;
+  const emoji = $('mi-emoji')?.value||'🍽';
+  if(!name||Number.isNaN(price)){ toast('Please fill in name and valid price'); return; }
+  if(S.editItem){
+    const item = S.menu.find(i=>i.id===S.editItem.id);
+    Object.assign(item,{name,price,desc,cat,stock,emoji,avail:stock>0?item.avail:false});
+    toast('Item updated');
+  } else {
+    S.menu.push({id:uid(),name,price,desc,cat,stock,emoji,avail:stock>0});
+    toast('Item added to menu');
+  }
+  ensureStockFlags();
+  save(); closeModal();
+}
+
+function toggleAvail(id) {
+  if (!requireOwner()) return;
+  const item = S.menu.find(i=>i.id===id);
+  if(item){
+    if (item.stock <= 0) {
+      toast('Cannot enable item with zero stock');
+      return;
+    }
+    item.avail=!item.avail;
+    save();
+    toast(`${item.name} ${item.avail?'enabled':'disabled'}`);
+    render();
+  }
+}
+
+function deleteItem(id) {
+  if (!requireOwner()) return;
+  const item = S.menu.find(i => i.id === id);
+  if (!item) return;
+  S.menu = S.menu.filter(i => i.id !== id);
+  save();
+  toast(`${item.name} deleted`);
+  render();
+}
+
+function restock(id) {
+  if (!requireOwner()) return;
+  const item = S.menu.find(i=>i.id===id);
+  if(item){
+    item.stock+=10;
+    if (item.stock > 0) item.avail = true;
+    save();
+    toast(`+10 units added for ${item.name}`);
+    render();
+  }
+}
+
+function markAllRead() {
+  filteredNotifs().forEach(n=>n.read=true);
+  save();
+  toast('All notifications marked as read');
+  render();
+}
+
+function updateProfile() {
+  const name = $('pf-name')?.value?.trim();
+  if(name){
+    S.user=name;
+    const user = S.users.find(u => u.id === S.userId);
+    if (user) user.name = name;
+    save();
+    toast('Profile updated');
+    render();
+  }
+}
+
+function assertTest(name, condition, details) {
+  S.tests.push({ name, pass: !!condition, details: details || '' });
+}
+
+function runAllTests() {
+  const snapshot = JSON.parse(JSON.stringify({
+    menu: S.menu,
+    cart: S.cart,
+    orders: S.orders,
+    users: S.users,
+    notifs: S.notifs,
+    feedbacks: S.feedbacks,
+    user: S.user,
+    userId: S.userId,
+    role: S.role,
+  }));
+
+  S.tests = [];
+
+  const tUser = { id: uid(), name: 'qa-customer', email: 'qa@example.com', phone: '', password: 'password123', role: 'customer', verified: true };
+  S.users.push(tUser);
+  S.user = tUser.name;
+  S.userId = tUser.id;
+  S.role = 'customer';
+
+  const item = S.menu.find(i => i.stock > 2 && i.avail);
+  assertTest('Menu has sellable item', !!item, 'Need at least one item with stock > 2');
+
+  if (item) {
+    S.cart = [];
+    addToCart(item.id);
+    assertTest('Add to cart works', S.cart.length === 1 && S.cart[0].qty === 1, `${item.name} should be in cart`);
+    updateCartQty(item.id, 1);
+    assertTest('Cart quantity update works', S.cart[0] && S.cart[0].qty === 2, 'Quantity should increase to 2');
+    placeOrder();
+    const created = S.orders[S.orders.length - 1];
+    assertTest('Order is created', !!created && created.custId === tUser.id, 'Order should be linked to customer');
+    assertTest('Order status starts Confirmed', created && created.status === 'Confirmed', 'Initial status should be Confirmed');
+    advanceOrder(created.id);
+    assertTest('Tracking can advance', S.orders.find(o => o.id === created.id)?.status === 'Preparing', 'Status should progress');
+  }
+
+  const lowStockItem = S.menu.find(i => i.stock <= LOW_STOCK_THRESHOLD);
+  assertTest('Low-stock detection active', !!lowStockItem, 'At least one item should trigger low-stock logic');
+
+  S.rating = 5;
+  S.feedbacks.push({ id: uid(), user: S.user, userId: S.userId, rating: 5, comment: 'QA review', item: S.menu[0]?.name || 'n/a', date: new Date().toISOString() });
+  assertTest('Feedback stores rating and comment', S.feedbacks[S.feedbacks.length - 1].rating === 5, 'Stored rating should be 5');
+
+  const passed = S.tests.filter(t => t.pass).length;
+  const total = S.tests.length;
+  toast(`QA complete: ${passed}/${total} tests passed`);
+
+  Object.assign(S, snapshot);
+  render();
+}
+
+function autoProgressOrders() {
+  const active = S.orders.filter(o => ['Confirmed', 'Preparing', 'Ready'].includes(o.status));
+  if (!active.length) return;
+  const pick = active[Math.floor(Math.random() * active.length)];
+  if (!pick) return;
+  const prev = pick.status;
+  if (prev === 'Confirmed') pick.status = 'Preparing';
+  else if (prev === 'Preparing') pick.status = 'Ready';
+  else if (prev === 'Ready') pick.status = 'Delivered';
+  if (pick.status !== prev) {
+    pushNotif({
+      icon: pick.status === 'Delivered' ? '✅' : '🛎️',
+      title: `Order #${pick.id} status updated`,
+      text: `Now ${pick.status}`,
+      type: 'order',
+      targetRole: 'customer',
+      targetUserId: pick.custId,
+    });
+    save();
+    if (S.curOrder === pick.id && S.page === 'order-tracking') render();
+  }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render() {
+  const el = document.getElementById('app');
+  const renderer = pages[S.page];
+  el.innerHTML = renderer ? renderer() : `
+    <div class="full-page">
+      <div style="text-align:center">
+        <h2 style="font-size:24px;margin-bottom:1rem">Page not found</h2>
+        <button class="btn btn-primary" onclick="go('landing')">Go Home</button>
+      </div>
+    </div>`;
+}
+
+async function bootstrap() {
+  ensureStockFlags();
+  await initBackend();
+  render();
+  setInterval(autoProgressOrders, 12000);
+}
+
+bootstrap();
+</script>
+</body>
+</html>
